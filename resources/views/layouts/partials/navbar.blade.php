@@ -16,8 +16,10 @@
     <ul class="navbar-nav ml-auto">
 
         <li class="mr-1 mt-2">Dolar BCV Hoy: {{ number_format($dolar_bcv, 4, ',', '.') }} Bs.</li>
-        <a href="{{ url()->current() }}" class="small-box-footer mt-2 mr-5">Actualizar <i
-                class="fas fa-sync-alt"></i></a>
+        <a href="javascript:void(0)" onclick="fetch('/bcv-refresh').then(r => r.text()).then(() => location.reload())"
+            class="small-box-footer mt-2 mr-5" style="cursor:pointer">
+            Actualizar <i class="fas fa-sync-alt"></i>
+        </a>
 
         <!-- User Account Dropdown -->
         <li class="nav-item dropdown">

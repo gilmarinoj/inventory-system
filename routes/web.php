@@ -68,4 +68,12 @@ Route::prefix('admin')->middleware(['auth', 'locale'])->group(function (): void 
 
         return redirect()->back();
     })->name('lang.switch');
+
+
+    // BCV Refresh
+    Route::get('/bcv-refresh', function () {
+        Cache::forget('bcv_dollar_rate'); // borra el cache viejo
+        (new \App\Services\BcvRateService())->getDollarRate(); // vuelve a pedir al BCV y lo recachea
+        return 'ok';
+    });
 });

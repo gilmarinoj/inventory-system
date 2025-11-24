@@ -3,10 +3,12 @@
 namespace App\Providers;
 
 use App\Models\Setting;
+use App\Providers\AdminComposer;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\View;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -33,11 +35,13 @@ class AppServiceProvider extends ServiceProvider
                 ->transform(fn($setting) => $setting->value)
                 ->toArray();
             config([
-               'settings' => $settings
+                'settings' => $settings
             ]);
 
             config(['app.name' => config('settings.app_name')]);
         }
+
+        View::composer(['layouts.admin', 'layouts.partials.navbar'], AdminComposer::class);
 
         Paginator::useBootstrap();
     }
