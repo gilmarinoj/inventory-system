@@ -3,7 +3,7 @@
 @section('title', __('order.Orders_List'))
 @section('content-header', __('order.Orders_List'))
 @section('content-actions')
-    <a href="{{route('cart.index')}}" class="btn btn-primary">{{ __('cart.title') }}</a>
+    <a href="{{ route('cart.index') }}" class="btn btn-primary">{{ __('cart.title') }}</a>
 @endsection
 @section('content')
 
@@ -12,13 +12,15 @@
             <div class="row">
                 <div class="col-md-7"></div>
                 <div class="col-md-5">
-                    <form action="{{route('orders.index')}}">
+                    <form action="{{ route('orders.index') }}">
                         <div class="row">
                             <div class="col-md-5">
-                                <input type="date" name="start_date" class="form-control" value="{{request('start_date')}}" />
+                                <input type="date" name="start_date" class="form-control"
+                                    value="{{ request('start_date') }}" />
                             </div>
                             <div class="col-md-5">
-                                <input type="date" name="end_date" class="form-control" value="{{request('end_date')}}" />
+                                <input type="date" name="end_date" class="form-control"
+                                    value="{{ request('end_date') }}" />
                             </div>
                             <div class="col-md-2">
                                 <button class="btn btn-outline-primary" type="submit">{{ __('order.submit') }}</button>
@@ -29,78 +31,91 @@
             </div>
             <table class="table">
                 <thead>
-                <tr>
-                    <th>{{ __('order.ID') }}</th>
-                    <th>{{ __('order.Customer_Name') }}</th>
-                    <th>{{ __('order.Total') }}</th>
-                    <th>{{ __('order.Received_Amount') }}</th>
-                    <th>{{ __('order.Status') }}</th>
-                    <th>{{ __('order.To_Pay') }}</th>
-                    <th>{{ __('order.Created_At') }}</th>
-                    <th>{{ __('order.Actions') }}</th>
-                </tr>
+                    <tr>
+                        <th>{{ __('order.ID') }}</th>
+                        <th>{{ __('order.Customer_Name') }}</th>
+                        <th>{{ __('order.Total') }}</th>
+                        <th>{{ __('order.Received_Amount') }}</th>
+                        <th>{{ __('order.Status') }}</th>
+                        <th>{{ __('order.To_Pay') }}</th>
+                        <th>{{ __('order.Created_At') }}</th>
+                        <th>{{ __('order.Actions') }}</th>
+                    </tr>
                 </thead>
                 <tbody>
-                @foreach ($orders as $order)
-                    @php
-                        $orderTotal = $order->total();
-                        $orderReceived = $order->receivedAmount();
-                        $orderRemaining = $orderTotal - $orderReceived;
-                    @endphp
-                    <tr>
-                        <td>{{$order->id}}</td>
-                        <td>{{$order->getCustomerName()}}</td>
-                        <td>{{ config('settings.currency_symbol') }} {{number_format($orderTotal, 2)}}</td>
-                        <td>{{ config('settings.currency_symbol') }} {{number_format($orderReceived, 2)}}</td>
-                        <td>
-                            @if($orderReceived == 0)
-                                <span class="badge badge-danger">{{ __('order.Not_Paid') }}</span>
-                            @elseif($orderReceived < $orderTotal)
-                                <span class="badge badge-warning">{{ __('order.Partial') }}</span>
-                            @elseif($orderReceived >= $orderTotal)
-                                <span class="badge badge-success">{{ __('order.Paid') }}</span>
-                            @endif
-                        </td>
-                        <td>{{config('settings.currency_symbol')}} {{number_format($orderRemaining, 2)}}</td>
-                        <td>{{$order->created_at}}</td>
-                        <td>
-                            <button
-                                class="btn btn-sm btn-secondary btnShowInvoice"
-                                data-toggle="modal"
-                                data-target="#modalInvoice"
-                                data-order-id="{{ $order->id }}"
-                                data-customer-name="{{ $order->getCustomerName() }}"
-                                data-total="{{ $orderTotal }}"
-                                data-received="{{ $orderReceived }}"
-                                data-items='@json($order->items)'
-                                data-created-at="{{ $order->created_at }}">
-                                <ion-icon size="small" name="eye"></ion-icon>
-                            </button>
-
-                            @if($orderRemaining > 0)
-                                <button class="btn btn-sm btn-primary btnPartialPayment"
-                                        data-toggle="modal"
-                                        data-target="#partialPaymentModal"
-                                        data-order-id="{{ $order->id }}"
-                                        data-remaining-amount="{{ $orderRemaining }}">
-                                    Pay Partial
+                    @foreach ($orders as $order)
+                        @php
+                            $orderTotal = $order->total();
+                            $orderReceived = $order->receivedAmount();
+                            $orderRemaining = $orderTotal - $orderReceived;
+                        @endphp
+                        <tr>
+                            <td>{{ $order->id }}</td>
+                            <td>{{ $order->getCustomerName() }}</td>
+                            <td class="text-center">
+                                <strong class="text-success">$ {{ number_format($orderTotal, 2, ',', '.') }}</strong><br>
+                                <small class="text-muted">{{ number_format($orderTotal * $dolar_bcv, 2, ',', '.') }}
+                                    Bs.</small>
+                            </td>
+                            <td class="text-center">
+                                <strong class="text-info">$ {{ number_format($orderReceived, 2, ',', '.') }}</strong><br>
+                                <small class="text-muted">{{ number_format($orderReceived * $dolar_bcv, 2, ',', '.') }}
+                                    Bs.</small>
+                            </td>
+                            <td>
+                                @if ($orderReceived == 0)
+                                    <span class="badge badge-danger">{{ __('order.Not_Paid') }}</span>
+                                @elseif($orderReceived < $orderTotal)
+                                    <span class="badge badge-warning">{{ __('order.Partial') }}</span>
+                                @elseif($orderReceived >= $orderTotal)
+                                    <span class="badge badge-success">{{ __('order.Paid') }}</span>
+                                @endif
+                            </td>
+                            <td class="text-center">
+                                <strong class="text-danger">$
+                                    {{ number_format($orderRemaining, 2, ',', '.') }}</strong><br>
+                                <small class="text-muted">{{ number_format($orderRemaining * $dolar_bcv, 2, ',', '.') }}
+                                    Bs.</small>
+                            </td>
+                            <td>{{ $order->created_at }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-secondary btnShowInvoice" data-toggle="modal"
+                                    data-target="#modalInvoice" data-order-id="{{ $order->id }}"
+                                    data-customer-name="{{ $order->getCustomerName() }}" data-total="{{ $orderTotal }}"
+                                    data-received="{{ $orderReceived }}" data-items='@json($order->items)'
+                                    data-created-at="{{ $order->created_at }}">
+                                    <ion-icon size="small" name="eye"></ion-icon>
                                 </button>
-                            @endif
-                        </td>
-                    </tr>
-                @endforeach
+
+                                @if ($orderRemaining > 0)
+                                    <button class="btn btn-sm btn-primary btnPartialPayment" data-toggle="modal"
+                                        data-target="#partialPaymentModal" data-order-id="{{ $order->id }}"
+                                        data-remaining-amount="{{ $orderRemaining }}">
+                                        Pay Partial
+                                    </button>
+                                @endif
+                            </td>
+                        </tr>
+                    @endforeach
                 </tbody>
                 <tfoot>
-                <tr>
-                    <th></th>
-                    <th></th>
-                    <th>{{ config('settings.currency_symbol') }} {{ number_format($total, 2) }}</th>
-                    <th>{{ config('settings.currency_symbol') }} {{ number_format($receivedAmount, 2) }}</th>
-                    <th></th>
-                    <th></th>
-                    <th></th>
-                    <th></th>
-                </tr>
+                    <tr>
+                        <th></th>
+                        <th></th>
+                        <th class="text-center">
+                            $ {{ number_format($total, 2, ',', '.') }}<br>
+                            <small class="text-muted">{{ number_format($total * $dolar_bcv, 2, ',', '.') }} Bs.</small>
+                        </th>
+                        <th class="text-center">
+                            $ {{ number_format($receivedAmount, 2, ',', '.') }}<br>
+                            <small class="text-muted">{{ number_format($receivedAmount * $dolar_bcv, 2, ',', '.') }}
+                                Bs.</small>
+                        </th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                    </tr>
                 </tfoot>
             </table>
             {{ $orders->render() }}
@@ -123,7 +138,8 @@
                         <input type="hidden" name="order_id" id="modalOrderId">
                         <div class="form-group">
                             <label for="partialAmount">Enter Amount to Pay</label>
-                            <input type="number" class="form-control" step="0.01" id="partialAmount" name="amount" required>
+                            <input type="number" class="form-control" step="0.01" id="partialAmount" name="amount"
+                                required>
                             <small class="form-text text-muted">Remaining: <span id="remainingAmount"></span></small>
                         </div>
                     </div>
@@ -166,7 +182,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         jQuery(document).ready(function($) {
-            var currencySymbol = '{{ config("settings.currency_symbol") }}';
+            var currencySymbol = '{{ config('settings.currency_symbol') }}';
 
             // Invoice Modal
             $(document).on('click', '.btnShowInvoice', function() {
@@ -201,9 +217,11 @@
                             '<td>' + (index + 1) + '</td>' +
                             '<td>' + (product.name || 'N/A') + '</td>' +
                             '<td>-</td>' +
-                            '<td>' + currencySymbol + ' ' + parseFloat(unitPrice).toFixed(2) + '</td>' +
+                            '<td>' + currencySymbol + ' ' + parseFloat(unitPrice).toFixed(2) +
+                            '</td>' +
                             '<td>' + quantity + '</td>' +
-                            '<td>' + currencySymbol + ' ' + parseFloat(itemTotal).toFixed(2) + '</td>' +
+                            '<td>' + currencySymbol + ' ' + parseFloat(itemTotal).toFixed(2) +
+                            '</td>' +
                             '</tr>';
                     });
                 } else {
@@ -248,7 +266,8 @@
                     '</tr>' +
                     '<tr>' +
                     '<th colspan="5" class="text-right">Balance</th>' +
-                    '<th>' + currencySymbol + ' ' + parseFloat(totalAmount - receivedAmount).toFixed(2) + '</th>' +
+                    '<th>' + currencySymbol + ' ' + parseFloat(totalAmount - receivedAmount).toFixed(
+                        2) + '</th>' +
                     '</tr>' +
                     '</tfoot>' +
                     '</table>' +

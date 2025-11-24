@@ -3,273 +3,145 @@
 @section('content')
     <div class="container-fluid">
         <div class="row">
+            <!-- Tus cajas originales -->
             <div class="col-lg-3 col-6">
-                <!-- small box -->
                 <div class="small-box bg-info">
                     <div class="inner">
                         <h3>{{ $orders_count }}</h3>
                         <p>{{ __('dashboard.Orders_Count') }}</p>
                     </div>
-                    <div class="icon">
-                        <i class="ion ion-bag"></i>
-                    </div>
+                    <div class="icon"><i class="ion ion-bag"></i></div>
                     <a href="{{ route('orders.index') }}" class="small-box-footer">{{ __('common.More_info') }} <i
                             class="fas fa-arrow-circle-right"></i></a>
                 </div>
             </div>
-            <!-- ./col -->
+
+            <!-- INGRESOS TOTALES -->
             <div class="col-lg-3 col-6">
-                <!-- small box -->
                 <div class="small-box bg-success">
                     <div class="inner">
-                        <h3>{{ config('settings.currency_symbol') }} {{ number_format($income, 2) }}</h3>
-                        <p>{{ __('dashboard.Income') }}</p>
+                        <h3>$ {{ number_format($income, 2) }}</h3>
+                        <p class="mb-0">{{ __('dashboard.Income') }}</p>
+                        <small class="text-white opacity-75">
+                            Precio Bs: {{ number_format($income * $dolar_bcv, 2, ',', '.') }}
+                        </small>
                     </div>
-                    <div class="icon">
-                        <i class="ion ion-stats-bars"></i>
-                    </div>
+                    <div class="icon"><i class="ion ion-stats-bars"></i></div>
                     <a href="{{ route('orders.index') }}" class="small-box-footer">{{ __('common.More_info') }} <i
                             class="fas fa-arrow-circle-right"></i></a>
                 </div>
             </div>
-            <!-- ./col -->
+
+            <!-- INGRESOS DE HOY -->
             <div class="col-lg-3 col-6">
-                <!-- small box -->
                 <div class="small-box bg-danger">
                     <div class="inner">
-                        <h3>{{ config('settings.currency_symbol') }} {{ number_format($income_today, 2) }}</h3>
-                        <p>{{ __('dashboard.Income_Today') }}</p>
+                        <h3>$ {{ number_format($income_today, 2) }}</h3>
+                        <p class="mb-0">{{ __('dashboard.Income_Today') }}</p>
+                        <small class="text-white opacity-75">
+                            Precio Bs: {{ number_format($income_today * $dolar_bcv, 2, ',', '.') }}
+                        </small>
                     </div>
-                    <div class="icon">
-                        <i class="ion ion-pie-graph"></i>
-                    </div>
+                    <div class="icon"><i class="ion ion-pie-graph"></i></div>
                     <a href="{{ route('orders.index') }}" class="small-box-footer">{{ __('common.More_info') }} <i
                             class="fas fa-arrow-circle-right"></i></a>
                 </div>
             </div>
-            <!-- ./col -->
+
             <div class="col-lg-3 col-6">
-                <!-- small box -->
                 <div class="small-box bg-warning">
                     <div class="inner">
                         <h3>{{ $customers_count }}</h3>
                         <p>{{ __('dashboard.Customers_Count') }}</p>
                     </div>
-                    <div class="icon">
-                        <i class="ion ion-person-add"></i>
-                    </div>
+                    <div class="icon"><i class="ion ion-person-add"></i></div>
                     <a href="{{ route('customers.index') }}" class="small-box-footer">{{ __('common.More_info') }} <i
                             class="fas fa-arrow-circle-right"></i></a>
                 </div>
             </div>
-            <!-- ./col -->
 
-            {{-- NUEVOS PANELES DE GASTOS --}}
-
+            <!-- GASTOS DE HOY -->
             <div class="col-lg-3 col-6">
                 <div class="small-box bg-danger">
                     <div class="inner">
-                        {{-- Asegúrate de que $expenses_today esté disponible desde tu controlador --}}
-                        <h3>{{ config('settings.currency_symbol') }} {{ number_format($expenses_today ?? 0, 2) }}</h3>
-                        <p>Gastos de Hoy</p> {{-- Puedes usar una clave de traducción si existe --}}
+                        <h3>$ {{ number_format($expenses_today ?? 0, 2) }}</h3>
+                        <p class="mb-0">Gastos de Hoy</p>
+                        <small class="text-white opacity-75">
+                            Precio Bs: {{ number_format(($expenses_today ?? 0) * $dolar_bcv, 2, ',', '.') }}
+                        </small>
                     </div>
-                    <div class="icon">
-                        <i class="fas fa-minus-circle"></i> {{-- Icono para gastos --}}
-                    </div>
-                    {{-- Ajusta el enlace a donde se administran los gastos --}}
+                    <div class="icon"><i class="fas fa-minus-circle"></i></div>
                     <a href="{{ route('purchases.index') }}" class="small-box-footer">{{ __('common.More_info') }} <i
                             class="fas fa-arrow-circle-right"></i></a>
                 </div>
             </div>
+
+            <!-- TOTAL DE GASTOS -->
             <div class="col-lg-3 col-6">
                 <div class="small-box bg-secondary">
                     <div class="inner">
-                        {{-- Asegúrate de que $expenses_total esté disponible desde tu controlador --}}
-                        <h3>{{ config('settings.currency_symbol') }} {{ number_format($expenses_total ?? 0, 2) }}</h3>
-                        <p>Total de Gastos</p> {{-- Puedes usar una clave de traducción si existe --}}
+                        <h3>$ {{ number_format($expenses_total ?? 0, 2) }}</h3>
+                        <p class="mb-0">Total de Gastos</p>
+                        <small class="text-white opacity-75">
+                            Precio Bs: {{ number_format(($expenses_total ?? 0) * $dolar_bcv, 2, ',', '.') }}
+                        </small>
                     </div>
-                    <div class="icon">
-                        <i class="fas fa-money-bill-wave"></i> {{-- Otro icono para gastos/finanzas --}}
-                    </div>
-                    {{-- Ajusta el enlace a donde se administran los gastos --}}
+                    <div class="icon"><i class="fas fa-money-bill-wave"></i></div>
                     <a href="{{ route('purchases.index') }}" class="small-box-footer">{{ __('common.More_info') }} <i
                             class="fas fa-arrow-circle-right"></i></a>
                 </div>
             </div>
-        </div>
-    </div>
-    <div class="container-fluid">
-    </div>
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-6 my-2">
-                <h3>Producto con bajo Stock</h3>
-                <section class="content">
-                    <div class="card product-list">
-                        <div class="card-body">
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Nombre</th>
-                                        <th>Imagen</th>
-                                        <th>Código</th>
-                                        <th>Precio</th>
-                                        <th>Cantidad</th>
-                                        <th>Estado</th>
-                                        <th>Actualizado</th>
-                                        <!-- <th>Actions</th> -->
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($low_stock_products as $product)
+
+            <!-- Conversión automática -->
+            @php
+                $usdToBs = fn($usd) => number_format($usd * $dolar_bcv, 2, ',', '.');
+            @endphp
+
+            <div class="row mt-4">
+                @foreach ([['Producto con bajo Stock', $low_stock_products], ['Productos más vendidos (mes actual)', $current_month_products], ['Productos más vendidos del año', $past_months_products], ['Los más vendidos (general)', $best_selling_products]] as [$titulo, $productos])
+                    <div class="col-md-6 mb-4">
+                        <h3>{{ $titulo }}</h3>
+                        <div class="card">
+                            <div class="card-body p-0">
+                                <table class="table table-striped mb-0">
+                                    <thead>
                                         <tr>
-                                            <td>{{ $product->id }}</td>
-                                            <td>{{ $product->name }}</td>
-                                            <td><img class="product-img" src="{{ Storage::url($product->image) }}"
-                                                    alt=""></td>
-                                            <td>{{ $product->barcode }}</td>
-                                            <td>{{ $product->price }}</td>
-                                            <td>{{ $product->quantity }}</td>
-                                            <td>
-                                                <span
-                                                    class="right badge badge-{{ $product->status ? 'success' : 'danger' }}">{{ $product->status ? __('common.Active') : __('common.Inactive') }}</span>
-                                            </td>
-                                            <td>{{ $product->updated_at }}</td>
+                                            <th>ID</th>
+                                            <th>Nombre</th>
+                                            <th>Imagen</th>
+                                            <th>Código</th>
+                                            <th class="text-center">Precio</th>
+                                            <th>Cantidad</th>
+                                            <th>Estado</th>
                                         </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($productos as $p)
+                                            <tr>
+                                                <td>{{ $p->id }}</td>
+                                                <td>{{ $p->name }}</td>
+                                                <td><img class="product-img" src="{{ Storage::url($p->image) }}"
+                                                        alt=""></td>
+                                                <td>{{ $p->barcode }}</td>
+                                                <td class="text-center">
+                                                    <div class="text-success font-weight-bold">$
+                                                        {{ number_format($p->price, 2, ',', '.') }}</div>
+                                                    <small class="text-muted">{{ $usdToBs($p->price) }} Bs.</small>
+                                                </td>
+                                                <td>{{ $p->quantity }}</td>
+                                                <td>
+                                                    <span class="badge badge-{{ $p->status ? 'success' : 'danger' }}">
+                                                        {{ $p->status ? 'Activo' : 'Inactivo' }}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
-                </section>
-            </div>
-            <div class="col-6 my-2">
-                <h3>Productos mas Vendidos</h3>
-                <section class="content">
-                    <div class="card product-list">
-                        <div class="card-body">
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Nombre</th>
-                                        <th>Imagen</th>
-                                        <th>Código</th>
-                                        <th>Precio</th>
-                                        <th>Cantidad</th>
-                                        <th>Estado</th>
-                                        <th>Actualizado</th>
-                                        <!-- <th>Actions</th> -->
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($current_month_products as $product)
-                                        <tr>
-                                            <td>{{ $product->id }}</td>
-                                            <td>{{ $product->name }}</td>
-                                            <td><img class="product-img" src="{{ Storage::url($product->image) }}"
-                                                    alt=""></td>
-                                            <td>{{ $product->barcode }}</td>
-                                            <td>{{ $product->price }}</td>
-                                            <td>{{ $product->quantity }}</td>
-                                            <td>
-                                                <span
-                                                    class="right badge badge-{{ $product->status ? 'success' : 'danger' }}">{{ $product->status ? __('common.Active') : __('common.Inactive') }}</span>
-                                            </td>
-                                            <td>{{ $product->updated_at }}</td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </section>
-            </div>
-            <div class="col-6 my-4">
-                <h3>Productos más vendidos a lo largo del año</h3>
-                <section class="content">
-                    <div class="card product-list">
-                        <div class="card-body">
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Nombre</th>
-                                        <th>Imagen</th>
-                                        <th>Código</th>
-                                        <th>Precio</th>
-                                        <th>Cantidad</th>
-                                        <th>Estado</th>
-                                        <th>Actualizado</th>
-                                        <!-- <th>Actions</th> -->
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($past_months_products as $product)
-                                        <tr>
-                                            <td>{{ $product->id }}</td>
-                                            <td>{{ $product->name }}</td>
-                                            <td><img class="product-img" src="{{ Storage::url($product->image) }}"
-                                                    alt=""></td>
-                                            <td>{{ $product->barcode }}</td>
-                                            <td>{{ $product->price }}</td>
-                                            <td>{{ $product->quantity }}</td>
-                                            <td>
-                                                <span
-                                                    class="right badge badge-{{ $product->status ? 'success' : 'danger' }}">{{ $product->status ? __('common.Active') : __('common.Inactive') }}</span>
-                                            </td>
-                                            <td>{{ $product->updated_at }}</td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </section>
-            </div>
-            <div class="col-6 my-4">
-                <h3>Los más vendidos</h3>
-                <section class="content">
-                    <div class="card product-list">
-                        <div class="card-body">
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Nombre</th>
-                                        <th>Imagen</th>
-                                        <th>Código</th>
-                                        <th>Precio</th>
-                                        <th>Cantidad</th>
-                                        <th>Estado</th>
-                                        <th>Actualizado</th>
-                                        <!-- <th>Actions</th> -->
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($best_selling_products as $product)
-                                        <tr>
-                                            <td>{{ $product->id }}</td>
-                                            <td>{{ $product->name }}</td>
-                                            <td><img class="product-img" src="{{ Storage::url($product->image) }}"
-                                                    alt=""></td>
-                                            <td>{{ $product->barcode }}</td>
-                                            <td>{{ $product->price }}</td>
-                                            <td>{{ $product->quantity }}</td>
-                                            <td>
-                                                <span
-                                                    class="right badge badge-{{ $product->status ? 'success' : 'danger' }}">{{ $product->status ? __('common.Active') : __('common.Inactive') }}</span>
-                                            </td>
-                                            <td>{{ $product->updated_at }}</td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </section>
+                @endforeach
             </div>
         </div>
-    </div>
-@endsection
+    @endsection

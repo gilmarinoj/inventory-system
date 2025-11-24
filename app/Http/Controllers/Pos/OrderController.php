@@ -26,7 +26,10 @@ class OrderController extends Controller
         $total = $orders->sum(fn($order) => $order->total());
         $receivedAmount = $orders->sum(fn($order) => $order->receivedAmount());
 
-        return view('orders.index', ['orders' => $orders, 'total' => $total, 'receivedAmount' => $receivedAmount]);
+        $bcvService = new \App\Services\BcvRateService;
+        $dolar_bcv = $bcvService->getDollarRate();
+
+        return view('orders.index', ['orders' => $orders, 'total' => $total, 'receivedAmount' => $receivedAmount, 'dolar_bcv' => $dolar_bcv]);
     }
 
     public function store(OrderStoreRequest $request): \Illuminate\Http\JsonResponse

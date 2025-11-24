@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
-use App\Models\Expense;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\Purchase;
+use App\Services\BcvRateService;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 
@@ -24,6 +24,9 @@ class HomeController extends Controller
         $expenses_total = Purchase::sum('total_amount');
         $expenses_today = Purchase::whereDate('created_at', today())->sum('total_amount');
 
+        $bcvService = new BcvRateService();
+        $dolar_bcv = $bcvService->getDollarRate();
+
         return view('home', [
             'orders_count' => $orders->count(),
             'income' => $orders->sum(fn($order): float => min($order->receivedAmount(), $order->total())),
@@ -36,6 +39,7 @@ class HomeController extends Controller
             'best_selling_products' => Product::bestSelling()->get(),
             'current_month_products' => Product::currentMonthBestSelling()->get(),
             'past_months_products' => Product::pastMonthsHotProducts()->get(),
+            'dolar_bcv' => $dolar_bcv,
         ]);
     }
 }

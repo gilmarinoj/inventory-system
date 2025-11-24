@@ -15,6 +15,10 @@
     <!-- Right navbar links -->
     <ul class="navbar-nav ml-auto">
 
+        <li class="mr-1 mt-2">Dolar BCV Hoy: {{ number_format($dolar_bcv, 4, ',', '.') }} Bs.</li>
+        <a href="{{ url()->current() }}" class="small-box-footer mt-2 mr-5">Actualizar <i
+                class="fas fa-sync-alt"></i></a>
+
         <!-- User Account Dropdown -->
         <li class="nav-item dropdown">
             <a class="nav-link" data-toggle="dropdown" href="#">
@@ -26,7 +30,7 @@
                 </a>
                 <div class="dropdown-divider"></div>
                 <a href="{{ route('logout') }}" class="dropdown-item"
-                   onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                    onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                     <i class="fas fa-sign-out-alt mr-2"></i> {{ __('common.Logout') }}
                 </a>
                 <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">

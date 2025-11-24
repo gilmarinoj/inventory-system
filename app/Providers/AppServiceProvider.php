@@ -23,6 +23,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        require_once app_path('Helpers/PriceHelper.php');
         Schema::defaultStringLength(191);
 
         if (! $this->app->runningInConsole()) {
