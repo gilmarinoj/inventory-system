@@ -91,7 +91,7 @@
                                     <button class="btn btn-sm btn-primary btnPartialPayment" data-toggle="modal"
                                         data-target="#partialPaymentModal" data-order-id="{{ $order->id }}"
                                         data-remaining-amount="{{ $orderRemaining }}">
-                                        Pay Partial
+                                        Pago por partes
                                     </button>
                                 @endif
                             </td>
@@ -127,7 +127,7 @@
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Pay Partial Amount</h5>
+                    <h5 class="modal-title">Pago de Monto Parcial</h5>
                     <button type="button" class="close" data-dismiss="modal">
                         <span>&times;</span>
                     </button>
@@ -137,15 +137,15 @@
                     <div class="modal-body">
                         <input type="hidden" name="order_id" id="modalOrderId">
                         <div class="form-group">
-                            <label for="partialAmount">Enter Amount to Pay</label>
+                            <label for="partialAmount">Ingrese el monto a pagar</label>
                             <input type="number" class="form-control" step="0.01" id="partialAmount" name="amount"
                                 required>
-                            <small class="form-text text-muted">Remaining: <span id="remainingAmount"></span></small>
+                            <small class="form-text text-muted">Restante: <span id="remainingAmount"></span></small>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Submit Payment</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Realizar pago</button>
                     </div>
                 </form>
             </div>

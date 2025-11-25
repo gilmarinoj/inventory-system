@@ -3,18 +3,6 @@
 @section('content')
     <div class="container-fluid">
         <div class="row">
-            <!-- Tus cajas originales -->
-            <div class="col-lg-3 col-6">
-                <div class="small-box bg-info">
-                    <div class="inner">
-                        <h3>{{ $orders_count }}</h3>
-                        <p>{{ __('dashboard.Orders_Count') }}</p>
-                    </div>
-                    <div class="icon"><i class="ion ion-bag"></i></div>
-                    <a href="{{ route('orders.index') }}" class="small-box-footer">{{ __('common.More_info') }} <i
-                            class="fas fa-arrow-circle-right"></i></a>
-                </div>
-            </div>
 
             <!-- INGRESOS TOTALES -->
             <div class="col-lg-3 col-6">
@@ -26,7 +14,7 @@
                             Precio Bs: {{ number_format($income * $dolar_bcv, 2, ',', '.') }}
                         </small>
                     </div>
-                    <div class="icon"><i class="ion ion-stats-bars"></i></div>
+                    <div class="icon"><i class="fas fa-money-bill-wave"></i></div>
                     <a href="{{ route('orders.index') }}" class="small-box-footer">{{ __('common.More_info') }} <i
                             class="fas fa-arrow-circle-right"></i></a>
                 </div>
@@ -34,7 +22,7 @@
 
             <!-- INGRESOS DE HOY -->
             <div class="col-lg-3 col-6">
-                <div class="small-box bg-danger">
+                <div class="small-box bg-success">
                     <div class="inner">
                         <h3>$ {{ number_format($income_today, 2) }}</h3>
                         <p class="mb-0">{{ __('dashboard.Income_Today') }}</p>
@@ -42,20 +30,8 @@
                             Precio Bs: {{ number_format($income_today * $dolar_bcv, 2, ',', '.') }}
                         </small>
                     </div>
-                    <div class="icon"><i class="ion ion-pie-graph"></i></div>
+                    <div class="icon"><i class="fas fa-money-bill-wave"></i></div>
                     <a href="{{ route('orders.index') }}" class="small-box-footer">{{ __('common.More_info') }} <i
-                            class="fas fa-arrow-circle-right"></i></a>
-                </div>
-            </div>
-
-            <div class="col-lg-3 col-6">
-                <div class="small-box bg-warning">
-                    <div class="inner">
-                        <h3>{{ $customers_count }}</h3>
-                        <p>{{ __('dashboard.Customers_Count') }}</p>
-                    </div>
-                    <div class="icon"><i class="ion ion-person-add"></i></div>
-                    <a href="{{ route('customers.index') }}" class="small-box-footer">{{ __('common.More_info') }} <i
                             class="fas fa-arrow-circle-right"></i></a>
                 </div>
             </div>
@@ -78,7 +54,7 @@
 
             <!-- TOTAL DE GASTOS -->
             <div class="col-lg-3 col-6">
-                <div class="small-box bg-secondary">
+                <div class="small-box bg-danger">
                     <div class="inner">
                         <h3>$ {{ number_format($expenses_total ?? 0, 2) }}</h3>
                         <p class="mb-0">Total de Gastos</p>
@@ -86,8 +62,33 @@
                             Precio Bs: {{ number_format(($expenses_total ?? 0) * $dolar_bcv, 2, ',', '.') }}
                         </small>
                     </div>
-                    <div class="icon"><i class="fas fa-money-bill-wave"></i></div>
+                    <div class="icon"><i class="fas fa-minus-circle"></i></div>
                     <a href="{{ route('purchases.index') }}" class="small-box-footer">{{ __('common.More_info') }} <i
+                            class="fas fa-arrow-circle-right"></i></a>
+                </div>
+            </div>
+
+            <!-- Tus cajas originales -->
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-info">
+                    <div class="inner">
+                        <h3>{{ $orders_count }}</h3>
+                        <p>{{ __('dashboard.Orders_Count') }}</p>
+                    </div>
+                    <div class="icon"><i class="fas fa-receipt"></i></div>
+                    <a href="{{ route('orders.index') }}" class="small-box-footer">{{ __('common.More_info') }} <i
+                            class="fas fa-arrow-circle-right"></i></a>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-warning">
+                    <div class="inner">
+                        <h3>{{ $customers_count }}</h3>
+                        <p>{{ __('dashboard.Customers_Count') }}</p>
+                    </div>
+                    <div class="icon"><i class="fas fa-users nav-icon"></i></div>
+                    <a href="{{ route('customers.index') }}" class="small-box-footer">{{ __('common.More_info') }} <i
                             class="fas fa-arrow-circle-right"></i></a>
                 </div>
             </div>

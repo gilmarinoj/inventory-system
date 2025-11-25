@@ -2,6 +2,29 @@
 
 @section('title', 'All Purchases')
 
+@section('css')
+    <style>
+        html,
+        body {
+            height: 100%;
+        }
+
+        .wrapper {
+            min-height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .content-wrapper {
+            flex: 1;
+        }
+
+        .main-footer {
+            margin-left: 0 !important;
+        }
+    </style>
+@endsection
+
 @section('content-header')
     <div class="content-header">
         <div class="container-fluid">
@@ -17,12 +40,10 @@
 @endsection
 
 @section('content')
-    <div class="container-fluid"
-         x-data="purchaseFilter()"
-         x-init="init()">
+    <div class="h-100 d-flex flex-column" x-data="purchaseFilter()" x-init="init()">
 
         <!-- Filters Card -->
-        <div class="card card-outline card-primary">
+        <div class="card card-outline card-primary mb-3">
             <div class="card-header">
                 <h3 class="card-title">
                     <i class="fas fa-filter"></i> {{ __('Filters') }}
@@ -51,7 +72,7 @@
                             <label>{{ __('Supplier') }}</label>
                             <select x-model="filters.supplier_id" @change="applyFilters()" class="form-control">
                                 <option value="">{{ __('All Suppliers') }}</option>
-                                @foreach($suppliers as $supplier)
+                                @foreach ($suppliers as $supplier)
                                     <option value="{{ $supplier->id }}">
                                         {{ $supplier->first_name }} {{ $supplier->last_name }}
                                     </option>
@@ -62,19 +83,13 @@
                     <div class="col-md-2">
                         <div class="form-group">
                             <label>{{ __('Date From') }}</label>
-                            <input type="date"
-                                   x-model="filters.date_from"
-                                   @change="applyFilters()"
-                                   class="form-control">
+                            <input type="date" x-model="filters.date_from" @change="applyFilters()" class="form-control">
                         </div>
                     </div>
                     <div class="col-md-2">
                         <div class="form-group">
                             <label>{{ __('Date To') }}</label>
-                            <input type="date"
-                                   x-model="filters.date_to"
-                                   @change="applyFilters()"
-                                   class="form-control">
+                            <input type="date" x-model="filters.date_to" @change="applyFilters()" class="form-control">
                         </div>
                     </div>
                     <div class="col-md-2">
@@ -91,15 +106,12 @@
                         <div class="form-group mb-0">
                             <label>{{ __('Search') }}</label>
                             <div class="input-group">
-                                <input type="text"
-                                       x-model="filters.search"
-                                       @input.debounce.500ms="applyFilters()"
-                                       class="form-control"
-                                       placeholder="{{ __('Search by ID or notes...') }}">
+                                <input type="text" x-model="filters.search" @input.debounce.500ms="applyFilters()"
+                                    class="form-control" placeholder="{{ __('Search by ID or notes...') }}">
                                 <div class="input-group-append">
-                                <span class="input-group-text">
-                                    <i class="fas fa-search"></i>
-                                </span>
+                                    <span class="input-group-text">
+                                        <i class="fas fa-search"></i>
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -109,113 +121,112 @@
         </div>
 
         <!-- Loading Overlay -->
-        <div x-show="loading"
-             x-transition
-             class="text-center py-3">
-            <i class="fas fa-spinner fa-spin fa-2x text-primary"></i>
+        <div x-show="loading" x-transition class="text-center py-5 flex-shrink-0">
+            <i class="fas fa-spinner fa-spin fa-3x text-primary"></i>
         </div>
 
         <!-- Purchases Table Card -->
-        <div class="card" x-show="!loading" x-transition>
-            <div class="card-body p-0">
-                <div class="table-responsive">
+        <div class="card" x-show="!loading" x-transition style="height: calc(100vh - 280px);">
+            <div class="card-body p-0 h-100 d-flex flex-column">
+                <div class="table-responsive flex-grow-1">
                     <table class="table table-hover mb-0">
-                        <thead>
-                        <tr>
-                            <th>{{ __('ID') }}</th>
-                            <th>{{ __('Date') }}</th>
-                            <th>{{ __('Supplier') }}</th>
-                            <th>{{ __('Items') }}</th>
-                            <th>{{ __('Total Amount') }}</th>
-                            <th>{{ __('Status') }}</th>
-                            <th>{{ __('Actions') }}</th>
-                        </tr>
+                        <thead class="thead-light sticky-top bg-white">
+                            <tr>
+                                <th>ID</th>
+                                <th>Fecha</th>
+                                <th>Proveedor</th>
+                                <th>Artículos</th>
+                                <th class="text-center">Monto Total</th>
+                                <th class="text-center">Estado</th>
+                                <th>Acciones</th>
+                            </tr>
                         </thead>
                         <tbody>
-                        <template x-if="purchases.data && purchases.data.length > 0">
-                            <template x-for="purchase in purchases.data" :key="purchase.id">
+                            <template x-if="purchases.data && purchases.data.length > 0">
+                                <template x-for="purchase in purchases.data" :key="purchase.id">
+                                    <tr>
+                                        <td>
+                                            <a :href="`/admin/purchases/${purchase.id}`"
+                                                class="font-weight-bold text-primary">
+                                                #<span x-text="purchase.id"></span>
+                                            </a>
+                                        </td>
+                                        <td x-text="formatDate(purchase.purchase_date)"></td>
+                                        <td>
+                                            <i class="fas fa-truck text-muted mr-1"></i>
+                                            <span
+                                                x-text="`${purchase.supplier.first_name} ${purchase.supplier.last_name}`"></span>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-info">
+                                                <span x-text="purchase.items_count"></span> items
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            <strong class="text-success">
+                                                $ <span x-text="parseFloat(purchase.total_amount).toFixed(2)"></span>
+                                            </strong>
+                                            <br>
+                                            <small class="text-muted">
+                                                <span
+                                                    x-text="(parseFloat(purchase.total_amount) * {{ $dolar_bcv ?? 243.1105 }})
+                                                    .toFixed(2)
+                                                    .replace('.', ',')
+                                                    .replace(/\B(?=(\d{3})+(?!\d))/g, '.')"></span>
+                                                Bs.
+                                            </small>
+                                        </td>
+                                        <td class="text-center">
+                                            <template x-if="purchase.status === 'completed'">
+                                                <span class="badge badge-success">Completado</span>
+                                            </template>
+                                            <template x-if="purchase.status === 'pending'">
+                                                <span class="badge badge-warning">Pendiente</span>
+                                            </template>
+                                            <template x-if="purchase.status === 'cancelled'">
+                                                <span class="badge badge-danger">Cancelado</span>
+                                            </template>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a :href="`/admin/purchases/${purchase.id}`" class="btn btn-info"><i
+                                                        class="fas fa-eye"></i></a>
+                                                <a :href="`/admin/purchases/${purchase.id}/receipt`"
+                                                    class="btn btn-success" target="_blank"><i
+                                                        class="fas fa-print"></i></a>
+                                                <button @click="deletePurchase(purchase.id)" class="btn btn-danger"><i
+                                                        class="fas fa-trash"></i></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </template>
+                            <template x-if="!purchases.data || purchases.data.length === 0">
                                 <tr>
-                                    <td>
-                                        <a :href="`/admin/purchases/${purchase.id}`" class="font-weight-bold">
-                                            #<span x-text="purchase.id"></span>
-                                        </a>
-                                    </td>
-                                    <td x-text="formatDate(purchase.purchase_date)"></td>
-                                    <td>
-                                        <i class="fas fa-truck text-muted"></i>
-                                        <span x-text="`${purchase.supplier.first_name} ${purchase.supplier.last_name}`"></span>
-                                    </td>
-                                    <td>
-                                        <span class="badge badge-info">
-                                            <span x-text="purchase.items_count"></span> {{ __('items') }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <strong>{{ config('settings.currency_symbol') }}<span x-text="parseFloat(purchase.total_amount).toFixed(2)"></span></strong>
-                                    </td>
-                                    <td>
-                                        <template x-if="purchase.status === 'completed'">
-                                            <span class="badge badge-success">
-                                                <i class="fas fa-check-circle"></i> {{ __('Completed') }}
-                                            </span>
-                                        </template>
-                                        <template x-if="purchase.status === 'pending'">
-                                            <span class="badge badge-warning">
-                                                <i class="fas fa-clock"></i> {{ __('Pending') }}
-                                            </span>
-                                        </template>
-                                        <template x-if="purchase.status === 'cancelled'">
-                                            <span class="badge badge-danger">
-                                                <i class="fas fa-times-circle"></i> {{ __('Cancelled') }}
-                                            </span>
-                                        </template>
-                                    </td>
-                                    <td>
-                                        <div class="btn-group btn-group-sm">
-                                            <a :href="`/admin/purchases/${purchase.id}`" class="btn btn-info" title="{{ __('View') }}">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            <a :href="`/admin/purchases/${purchase.id}/receipt`" class="btn btn-success" title="{{ __('Print Receipt') }}" target="_blank">
-                                                <i class="fas fa-print"></i>
-                                            </a>
-                                            <button @click="deletePurchase(purchase.id)" class="btn btn-danger" title="{{ __('Delete') }}">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </div>
+                                    <td colspan="7" class="text-center py-5">
+                                        <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
+                                        <p class="h5 text-muted">No hay compras registradas</p>
                                     </td>
                                 </tr>
                             </template>
-                        </template>
-                        <template x-if="!purchases.data || purchases.data.length === 0">
-                            <tr>
-                                <td colspan="7" class="text-center text-muted py-4">
-                                    <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
-                                    <p>{{ __('No purchases found') }}</p>
-                                    <a href="{{ route('purchases.create') }}" class="btn btn-primary">
-                                        <i class="fas fa-plus"></i> {{ __('Create First Purchase') }}
-                                    </a>
-                                </td>
-                            </tr>
-                        </template>
                         </tbody>
                     </table>
                 </div>
-            </div>
 
-            <!-- Pagination -->
-            <div class="card-footer" x-show="purchases.last_page > 1">
-                <nav>
-                    <ul class="pagination pagination-sm m-0 float-right">
-                        <template x-for="page in paginationPages" :key="page">
-                            <li class="page-item" :class="{ 'active': page === purchases.current_page, 'disabled': page === '...' }">
-                                <a class="page-link"
-                                   href="#"
-                                   @click.prevent="page !== '...' && changePage(page)"
-                                   x-text="page"></a>
-                            </li>
-                        </template>
-                    </ul>
-                </nav>
+                <!-- Paginación siempre visible debajo del scroll -->
+                <div class="card-footer bg-white border-top-0" x-show="purchases.last_page > 1">
+                    <nav>
+                        <ul class="pagination pagination-sm justify-content-center m-0">
+                            <template x-for="page in paginationPages" :key="page">
+                                <li class="page-item"
+                                    :class="{ 'active': page === purchases.current_page, 'disabled': page === '...' }">
+                                    <a class="page-link" href="#"
+                                        @click.prevent="page !== '...' && changePage(page)" x-text="page"></a>
+                                </li>
+                            </template>
+                        </ul>
+                    </nav>
+                </div>
             </div>
         </div>
     </div>
@@ -224,7 +235,6 @@
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
 <script>
-
     function purchaseFilter() {
         return {
             loading: false,
@@ -235,11 +245,11 @@
                 total: 0
             },
             filters: {
-                status: '{{ request("status") }}',
-                supplier_id: '{{ request("supplier_id") }}',
-                date_from: '{{ request("date_from") }}',
-                date_to: '{{ request("date_to") }}',
-                search: '{{ request("search") }}',
+                status: '{{ request('status') }}',
+                supplier_id: '{{ request('supplier_id') }}',
+                date_from: '{{ request('date_from') }}',
+                date_to: '{{ request('date_to') }}',
+                search: '{{ request('search') }}',
                 page: 1
             },
 
@@ -328,7 +338,11 @@
 
             formatDate(dateString) {
                 const date = new Date(dateString);
-                return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                return date.toLocaleDateString('en-GB', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric'
+                });
             },
 
             get paginationPages() {

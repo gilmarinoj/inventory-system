@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Purchase Receipt #{{ $purchase->id }}</title>
+    <title>Recibo de Compra #{{ $purchase->id }}</title>
     <style>
         * {
             margin: 0;
@@ -160,7 +160,7 @@
 <!-- Header -->
 <div class="header">
     <h1>{{ config('app.name') }}</h1>
-    <p>PURCHASE RECEIPT</p>
+    <p>RECIBO DE COMPRA</p>
     @if(config('settings.store_address'))
         <p>{{ config('settings.store_address') }}</p>
     @endif
@@ -172,41 +172,41 @@
 <!-- Purchase Info -->
 <div class="section">
     <div class="info-row">
-        <span class="info-label">Receipt #:</span>
+        <span class="info-label">Recibo #:</span>
         <span class="info-value">{{ str_pad($purchase->id, 6, '0', STR_PAD_LEFT) }}</span>
     </div>
     <div class="info-row">
-        <span class="info-label">Date:</span>
+        <span class="info-label">Fecha:</span>
         <span class="info-value">{{ $purchase->purchase_date->format('d/m/Y H:i') }}</span>
     </div>
     <div class="info-row">
-        <span class="info-label">Status:</span>
+        <span class="info-label">Estadi:</span>
         <span class="info-value">
                 <span class="status-badge">{{ strtoupper($purchase->status) }}</span>
             </span>
     </div>
     <div class="info-row">
-        <span class="info-label">Created By:</span>
+        <span class="info-label">Creado por:</span>
         <span class="info-value">{{ $purchase->user->name }}</span>
     </div>
 </div>
 
 <!-- Supplier Info -->
 <div class="section">
-    <div class="section-title">Supplier Information</div>
+    <div class="section-title">Información del Proveedor</div>
     <div class="info-row">
-        <span class="info-label">Name:</span>
+        <span class="info-label">Nombre:</span>
         <span class="info-value">{{ $purchase->supplier->first_name }} {{ $purchase->supplier->last_name }}</span>
     </div>
     @if($purchase->supplier->phone)
         <div class="info-row">
-            <span class="info-label">Phone:</span>
+            <span class="info-label">Teléfono:</span>
             <span class="info-value">{{ $purchase->supplier->phone }}</span>
         </div>
     @endif
     @if($purchase->supplier->email)
         <div class="info-row">
-            <span class="info-label">Email:</span>
+            <span class="info-label">Correo:</span>
             <span class="info-value">{{ $purchase->supplier->email }}</span>
         </div>
     @endif
@@ -214,13 +214,13 @@
 
 <!-- Items -->
 <div class="section">
-    <div class="section-title">Items</div>
+    <div class="section-title">Productos</div>
     <table>
         <thead>
         <tr>
-            <th class="item-name">Item</th>
-            <th class="item-qty">Qty</th>
-            <th class="item-price">Price</th>
+            <th class="item-name">Producto</th>
+            <th class="item-qty">Cantidad</th>
+            <th class="item-price">Precio</th>
         </tr>
         </thead>
         <tbody>
@@ -249,7 +249,7 @@
         <span>{{ config('settings.currency_symbol') }}{{ number_format($purchase->total_amount, 2) }}</span>
     </div>
     <div class="info-row" style="margin-top: 10px;">
-        <span class="info-label">Total Items:</span>
+        <span class="info-label">Total de Productos:</span>
         <span class="info-value">{{ $purchase->items->sum('quantity') }} pcs</span>
     </div>
 </div>
@@ -257,7 +257,7 @@
 <!-- Notes -->
 @if($purchase->notes)
     <div class="section">
-        <div class="section-title">Notes</div>
+        <div class="section-title">Notas</div>
         <p style="font-size: 10px;">{{ $purchase->notes }}</p>
     </div>
 @endif
@@ -269,11 +269,11 @@
 
 <!-- Footer -->
 <div class="footer">
-    <p>Thank you for your business!</p>
+    <p>Gracias por confiar en nosotros!</p>
     <p style="margin-top: 5px;">{{ now()->format('d/m/Y H:i:s') }}</p>
     <p style="margin-top: 10px; font-size: 9px;">
-        This is a computer generated receipt.<br>
-        No signature required.
+        Esto es un recibo de compra generado por computadora.<br>
+        No requiere firma.
     </p>
 </div>
 </body>

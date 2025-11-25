@@ -41,7 +41,11 @@ class AppServiceProvider extends ServiceProvider
             config(['app.name' => config('settings.app_name')]);
         }
 
-        View::composer(['layouts.admin', 'layouts.partials.navbar'], AdminComposer::class);
+        View::composer('layouts.admin', AdminComposer::class);
+        View::composer('*', function ($view) {
+            $rate = cache('bcv_dollar_rate') ?? (new \App\Services\BcvRateService())->getDollarRate();
+            $view->with('dolar_bcv', $rate);
+        });
 
         Paginator::useBootstrap();
     }

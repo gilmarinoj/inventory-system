@@ -13,7 +13,7 @@ class Purchase extends Component {
             suppliers: [],
             search: "",
             supplier_id: "",
-            purchase_date: new Date().toISOString().split('T')[0],
+            purchase_date: new Date().toISOString().split("T")[0],
             status: "completed",
             notes: "",
             translations: {},
@@ -58,56 +58,67 @@ class Purchase extends Component {
     }
 
     loadSuppliers() {
-        axios.get(`/admin/suppliers`, {
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            }
-        }).then((res) => {
-            console.log('Suppliers API Response:', res.data);
-            console.log('Is Array?', Array.isArray(res.data));
-            console.log('Has data property?', res.data.data);
+        axios
+            .get(`/admin/suppliers`, {
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json",
+                },
+            })
+            .then((res) => {
+                console.log("Suppliers API Response:", res.data);
+                console.log("Is Array?", Array.isArray(res.data));
+                console.log("Has data property?", res.data.data);
 
-            // Handle both array and paginated response
-            const suppliers = Array.isArray(res.data) ? res.data : (res.data.data || []);
-            console.log('Final suppliers:', suppliers);
+                // Handle both array and paginated response
+                const suppliers = Array.isArray(res.data)
+                    ? res.data
+                    : res.data.data || [];
+                console.log("Final suppliers:", suppliers);
 
-            this.setState({ suppliers });
-        }).catch((error) => {
-            console.error("Error loading suppliers:", error);
-            this.setState({ suppliers: [] });
-        });
+                this.setState({ suppliers });
+            })
+            .catch((error) => {
+                console.error("Error loading suppliers:", error);
+                this.setState({ suppliers: [] });
+            });
     }
 
     loadProducts(search = "") {
         const query = !!search ? `?search=${search}` : "";
-        axios.get(`/admin/products${query}`, {
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            }
-        }).then((res) => {
-            const products = res.data.data || [];
-            this.setState({ products });
-        }).catch((error) => {
-            console.error("Error loading products:", error);
-            this.setState({ products: [] });
-        });
+        axios
+            .get(`/admin/products${query}`, {
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json",
+                },
+            })
+            .then((res) => {
+                const products = res.data.data || [];
+                this.setState({ products });
+            })
+            .catch((error) => {
+                console.error("Error loading products:", error);
+                this.setState({ products: [] });
+            });
     }
 
     loadCart() {
-        axios.get("/admin/purchase-cart", {
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            }
-        }).then((res) => {
-            const cart = Array.isArray(res.data) ? res.data : [];
-            this.setState({ cart });
-        }).catch((error) => {
-            console.error("Error loading cart:", error);
-            this.setState({ cart: [] });
-        });
+        axios
+            .get("/admin/purchase-cart", {
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json",
+                },
+            })
+            .then((res) => {
+                const cart = Array.isArray(res.data) ? res.data : [];
+                this.setState({ cart });
+            })
+            .catch((error) => {
+                console.error("Error loading cart:", error);
+                this.setState({ cart: [] });
+            });
     }
 
     handleChangeSearch(event) {
@@ -156,7 +167,11 @@ class Purchase extends Component {
                 console.log("Added to cart:", res.data);
             })
             .catch((err) => {
-                Swal.fire("Error!", err.response?.data?.message || "Failed to add product", "error");
+                Swal.fire(
+                    "Error!",
+                    err.response?.data?.message || "Failed to add product",
+                    "error"
+                );
             });
     }
 
@@ -172,12 +187,19 @@ class Purchase extends Component {
         if (!qty) return;
 
         axios
-            .post("/admin/purchase-cart/change-qty", { product_id, quantity: qty })
+            .post("/admin/purchase-cart/change-qty", {
+                product_id,
+                quantity: qty,
+            })
             .then((res) => {
                 console.log("Quantity updated");
             })
             .catch((err) => {
-                Swal.fire("Error!", err.response?.data?.message || "Failed to update quantity", "error");
+                Swal.fire(
+                    "Error!",
+                    err.response?.data?.message || "Failed to update quantity",
+                    "error"
+                );
             });
     }
 
@@ -193,38 +215,61 @@ class Purchase extends Component {
         if (!price) return;
 
         axios
-            .post("/admin/purchase-cart/change-price", { product_id, purchase_price: price })
+            .post("/admin/purchase-cart/change-price", {
+                product_id,
+                purchase_price: price,
+            })
             .then((res) => {
                 console.log("Price updated");
             })
             .catch((err) => {
-                Swal.fire("Error!", err.response?.data?.message || "Failed to update price", "error");
+                Swal.fire(
+                    "Error!",
+                    err.response?.data?.message || "Failed to update price",
+                    "error"
+                );
             });
     }
 
     getTotal(cart) {
-        const total = cart.map((c) => c.pivot.quantity * (c.pivot.purchase_price || 0));
+        const total = cart.map(
+            (c) => c.pivot.quantity * (c.pivot.purchase_price || 0)
+        );
         return sum(total).toFixed(2);
     }
 
     handleClickDelete(product_id) {
         axios
-            .post("/admin/purchase-cart/delete", { product_id, _method: "DELETE" })
+            .post("/admin/purchase-cart/delete", {
+                product_id,
+                _method: "DELETE",
+            })
             .then((res) => {
                 const cart = this.state.cart.filter((c) => c.id !== product_id);
                 this.setState({ cart });
             })
             .catch((err) => {
-                Swal.fire("Error!", err.response?.data?.message || "Failed to delete", "error");
+                Swal.fire(
+                    "Error!",
+                    err.response?.data?.message || "Failed to delete",
+                    "error"
+                );
             });
     }
 
     handleEmptyCart() {
-        axios.post("/admin/purchase-cart/empty", { _method: "DELETE" }).then((res) => {
-            this.setState({ cart: [] });
-        }).catch((err) => {
-            Swal.fire("Error!", err.response?.data?.message || "Failed to empty cart", "error");
-        });
+        axios
+            .post("/admin/purchase-cart/empty", { _method: "DELETE" })
+            .then((res) => {
+                this.setState({ cart: [] });
+            })
+            .catch((err) => {
+                Swal.fire(
+                    "Error!",
+                    err.response?.data?.message || "Failed to empty cart",
+                    "error"
+                );
+            });
     }
 
     setSupplierId(event) {
@@ -244,7 +289,8 @@ class Purchase extends Component {
     }
 
     handleClickSubmit() {
-        const { supplier_id, purchase_date, status, notes, cart, suppliers } = this.state;
+        const { supplier_id, purchase_date, status, notes, cart, suppliers } =
+            this.state;
 
         // Validation
         if (!supplier_id) {
@@ -258,16 +304,18 @@ class Purchase extends Component {
         }
 
         const total_amount = this.getTotal(cart);
-        const items = cart.map(c => ({
+        const items = cart.map((c) => ({
             product_id: c.id,
             quantity: c.pivot.quantity,
-            purchase_price: c.pivot.purchase_price || 0
+            purchase_price: c.pivot.purchase_price || 0,
         }));
 
         // Get supplier info safely
         const suppliersList = Array.isArray(suppliers) ? suppliers : [];
-        const supplier = suppliersList.find(s => s.id == supplier_id);
-        const supplierName = supplier ? `${supplier.first_name} ${supplier.last_name}` : 'Unknown';
+        const supplier = suppliersList.find((s) => s.id == supplier_id);
+        const supplierName = supplier
+            ? `${supplier.first_name} ${supplier.last_name}`
+            : "Unknown";
 
         Swal.fire({
             title: "Confirm Purchase",
@@ -291,27 +339,34 @@ class Purchase extends Component {
                         total_amount,
                         status,
                         notes,
-                        items
+                        items,
                     })
                     .then((res) => {
                         this.loadCart();
                         return res.data;
                     })
                     .catch((err) => {
-                        Swal.showValidationMessage(err.response?.data?.message || "Failed to create purchase");
+                        Swal.showValidationMessage(
+                            err.response?.data?.message ||
+                                "Failed to create purchase"
+                        );
                     });
             },
             allowOutsideClick: () => !Swal.isLoading(),
         }).then((result) => {
             if (result.value) {
-                Swal.fire("Success!", "Purchase created successfully!", "success");
+                Swal.fire(
+                    "Success!",
+                    "Purchase created successfully!",
+                    "success"
+                );
                 // Clear form
                 this.setState({
                     cart: [],
                     supplier_id: "",
-                    purchase_date: new Date().toISOString().split('T')[0],
+                    purchase_date: new Date().toISOString().split("T")[0],
                     status: "completed",
-                    notes: ""
+                    notes: "",
                 });
             }
         });
@@ -327,7 +382,7 @@ class Purchase extends Component {
             purchase_date,
             status,
             notes,
-            translations = {}
+            translations = {},
         } = this.state;
 
         // Ensure suppliers is always an array
@@ -343,7 +398,10 @@ class Purchase extends Component {
                                 <input
                                     type="text"
                                     className="form-control form-control-lg"
-                                    placeholder={(translations["search_product"] || "Search Product") + "..."}
+                                    placeholder={
+                                        (translations["buscar_producto"] ||
+                                            "Buscar Producto") + "..."
+                                    }
                                     value={search}
                                     onChange={this.handleChangeSearch}
                                     onKeyDown={this.handleSearch}
@@ -358,9 +416,31 @@ class Purchase extends Component {
                                     >
                                         <img src={p.image_url} alt={p.name} />
                                         <h5>{p.name}</h5>
-                                        <small className="text-muted">Stock: {p.quantity}</small>
-                                        {p.purchase_price && (
-                                            <><br /><small className="text-success font-weight-bold">Cost: {window.APP.currency_symbol}{p.purchase_price}</small></>
+                                        <small className="text-muted d-block">
+                                            Stock: {p.quantity}
+                                        </small>
+                                        {p.purchase_price > 0 && (
+                                            <div className="text-center mt-2">
+                                                <small className="text-success font-weight-bold d-block">
+                                                    ${" "}
+                                                    {parseFloat(
+                                                        p.purchase_price
+                                                    ).toFixed(2)}
+                                                </small>
+                                                <small className="text-muted">
+                                                    {(
+                                                        p.purchase_price *
+                                                        window.dolarBcv
+                                                    )
+                                                        .toFixed(2)
+                                                        .replace(".", ",")
+                                                        .replace(
+                                                            /\B(?=(\d{3})+(?!\d))/g,
+                                                            "."
+                                                        )}{" "}
+                                                    Bs.
+                                                </small>
+                                            </div>
                                         )}
                                     </div>
                                 ))}
@@ -370,226 +450,180 @@ class Purchase extends Component {
                 </div>
 
                 {/* RIGHT SIDE - Purchase Cart */}
-                <div className="col-lg-4 col-md-5">
-                    <div className="cart-card">
-                        {/* Supplier & Date Card */}
-                        <div className="card card-primary card-outline">
-                            <div className="card-header">
-                                <h3 className="card-title">
-                                    <i className="fas fa-truck mr-2"></i>Purchase Information
-                                </h3>
-                            </div>
-                            <div className="card-body">
-                                <div className="form-group">
-                                    <label>Supplier <span className="text-danger">*</span></label>
-                                    <select
-                                        className="form-control"
-                                        value={supplier_id}
-                                        onChange={this.setSupplierId}
-                                    >
-                                        <option value="">Select Supplier</option>
-                                        {suppliersList.map((sup) => (
-                                            <option
-                                                key={sup.id}
-                                                value={sup.id}
-                                            >{`${sup.first_name} ${sup.last_name}`}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="form-group">
-                                    <label>Purchase Date <span className="text-danger">*</span></label>
+<div className="col-lg-4 col-md-5">
+    {/* CONTENEDOR CON SCROLL FIJO */}
+    <div style={{ maxHeight: 'calc(100vh - 180px)', overflowY: 'auto', paddingRight: '8px' }}>
+        {/* Información de Compra (Proveedor + Fecha) */}
+        <div className="card card-primary card-outline mb-3">
+            <div className="card-header">
+                <h3 className="card-title">
+                    <i className="fas fa-truck mr-2"></i>Información de Compra
+                </h3>
+            </div>
+            <div className="card-body">
+                <div className="form-group">
+                    <label>Proveedor <span className="text-danger">*</span></label>
+                    <select className="form-control" value={supplier_id} onChange={this.setSupplierId}>
+                        <option value="">Seleccionar Proveedor</option>
+                        {suppliersList.map((sup) => (
+                            <option key={sup.id} value={sup.id}>
+                                {`${sup.first_name} ${sup.last_name}`}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                <div className="form-group">
+                    <label>Fecha de Compra <span className="text-danger">*</span></label>
+                    <input type="date" className="form-control" value={purchase_date} onChange={this.handleDateChange} />
+                </div>
+            </div>
+        </div>
+
+        {/* Productos en el carrito */}
+        <div className="card card-secondary card-outline mb-3">
+            <div className="card-header">
+                <h3 className="card-title">
+                    <i className="fas fa-shopping-basket mr-2"></i>Productos
+                </h3>
+            </div>
+            <div className="card-body p-0 purchase-cart">
+                <table className="table table-sm table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th width="70">Cant.</th>
+                            <th width="90">Precio</th>
+                            <th width="40"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {cart.map((c) => (
+                            <tr key={c.id}>
+                                <td><small className="font-weight-bold">{c.name}</small></td>
+                                <td>
                                     <input
-                                        type="date"
-                                        className="form-control"
-                                        value={purchase_date}
-                                        onChange={this.handleDateChange}
+                                        type="number"
+                                        className="form-control form-control-sm"
+                                        value={c.pivot.quantity}
+                                        onChange={(e) => this.handleChangeQty(c.id, e.target.value)}
+                                        min="1"
                                     />
-                                </div>
-                            </div>
-                        </div>
+                                </td>
+                                <td className="text-center">
+                                    <input
+                                        type="number"
+                                        className="form-control form-control-sm text-center"
+                                        value={c.pivot.purchase_price || 0}
+                                        onChange={(e) => this.handleChangePrice(c.id, e.target.value)}
+                                        min="0"
+                                        step="0.01"
+                                        style={{ fontWeight: 'bold' }}
+                                    />
+                                    <br />
+                                    <small className="text-success">$ {parseFloat(c.pivot.purchase_price || 0).toFixed(2)}</small>
+                                    <br />
+                                    <small className="text-muted">
+                                        {((c.pivot.purchase_price || 0) * window.dolarBcv)
+                                            .toFixed(2)
+                                            .replace('.', ',')
+                                            .replace(/\B(?=(\d{3})+(?!\d))/g, '.')} Bs.
+                                    </small>
+                                </td>
+                                <td>
+                                    <button className="btn btn-danger btn-xs" onClick={() => this.handleClickDelete(c.id)}>
+                                        <i className="fas fa-times"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+                {cart.length === 0 && (
+                    <div className="text-center text-muted py-4">
+                        <p>No hay productos en el carrito</p>
+                    </div>
+                )}
+            </div>
+        </div>
 
-                        {/* Cart Items Card */}
-                        <div className="card card-secondary card-outline">
-                            <div className="card-header">
-                                <h3 className="card-title">
-                                    <i className="fas fa-shopping-basket mr-2"></i>Items
-                                </h3>
-                            </div>
-                            <div className="card-body p-0 purchase-cart">
-                                <table className="table table-sm table-hover mb-0">
-                                    <thead>
-                                    <tr>
-                                        <th>Product</th>
-                                        <th width="70">Qty</th>
-                                        <th width="90">Price</th>
-                                        <th width="40"></th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    {cart.map((c) => (
-                                        <tr key={c.id}>
-                                            <td>
-                                                <small className="font-weight-bold">{c.name}</small>
-                                            </td>
-                                            <td>
-                                                <input
-                                                    type="number"
-                                                    className="form-control form-control-sm"
-                                                    value={c.pivot.quantity}
-                                                    onChange={(event) =>
-                                                        this.handleChangeQty(
-                                                            c.id,
-                                                            event.target.value
-                                                        )
-                                                    }
-                                                    min="1"
-                                                />
-                                            </td>
-                                            <td>
-                                                <input
-                                                    type="number"
-                                                    className="form-control form-control-sm"
-                                                    value={c.pivot.purchase_price || 0}
-                                                    onChange={(event) =>
-                                                        this.handleChangePrice(
-                                                            c.id,
-                                                            event.target.value
-                                                        )
-                                                    }
-                                                    min="0"
-                                                    step="0.01"
-                                                />
-                                            </td>
-                                            <td>
-                                                <button
-                                                    className="btn btn-danger btn-xs"
-                                                    onClick={() => this.handleClickDelete(c.id)}
-                                                    title="Remove"
-                                                >
-                                                    <i className="fas fa-times"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                    </tbody>
-                                </table>
-                                {cart.length === 0 && (
-                                    <div className="text-center text-muted py-4">
-                                        <i className="fas fa-inbox fa-3x mb-2"></i>
-                                        <p>No items added yet</p>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
+        {/* Notas */}
+        {cart.length > 0 && (
+            <div className="card mb-3">
+                <div className="card-body py-3">
+                    <label className="small">Notas (opcional)</label>
+                    <textarea
+                        className="form-control form-control-sm"
+                        rows="2"
+                        value={notes}
+                        onChange={this.handleNotesChange}
+                        placeholder="Agregar notas..."
+                    />
+                </div>
+            </div>
+        )}
 
-                        {/* Notes */}
-                        {cart.length > 0 && (
-                            <div className="card">
-                                <div className="card-body">
-                                    <div className="form-group mb-0">
-                                        <label className="small">Notes (optional)</label>
-                                        <textarea
-                                            className="form-control form-control-sm"
-                                            placeholder="Add notes..."
-                                            rows="2"
-                                            value={notes}
-                                            onChange={this.handleNotesChange}
-                                        ></textarea>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Status */}
-                        {cart.length > 0 && (
-                            <div className="card">
-                                <div className="card-body">
-                                    <label className="small font-weight-bold mb-2">
-                                        <i className="fas fa-flag mr-1"></i>Status
-                                    </label>
-                                    <div className="status-selector">
-                                        <div className="form-check">
-                                            <input
-                                                className="form-check-input"
-                                                type="radio"
-                                                name="status"
-                                                id="status-pending"
-                                                value="pending"
-                                                checked={status === "pending"}
-                                                onChange={this.handleStatusChange}
-                                            />
-                                            <label className="form-check-label" htmlFor="status-pending">
-                                                <i className="fas fa-clock text-warning mr-1"></i>Pending
-                                            </label>
-                                        </div>
-                                        <div className="form-check">
-                                            <input
-                                                className="form-check-input"
-                                                type="radio"
-                                                name="status"
-                                                id="status-completed"
-                                                value="completed"
-                                                checked={status === "completed"}
-                                                onChange={this.handleStatusChange}
-                                            />
-                                            <label className="form-check-label" htmlFor="status-completed">
-                                                <i className="fas fa-check-circle text-success mr-1"></i>Completed
-                                            </label>
-                                        </div>
-                                        <div className="form-check">
-                                            <input
-                                                className="form-check-input"
-                                                type="radio"
-                                                name="status"
-                                                id="status-cancelled"
-                                                value="cancelled"
-                                                checked={status === "cancelled"}
-                                                onChange={this.handleStatusChange}
-                                            />
-                                            <label className="form-check-label" htmlFor="status-cancelled">
-                                                <i className="fas fa-times-circle text-danger mr-1"></i>Cancelled
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Total & Actions */}
-                        {cart.length > 0 && (
-                            <>
-                                <div className="purchase-total text-center">
-                                    <div className="small mb-1">Total Amount</div>
-                                    <div className="amount">{window.APP.currency_symbol} {this.getTotal(cart)}</div>
-                                </div>
-
-                                <div className="purchase-actions">
-                                    <div className="row">
-                                        <div className="col-6">
-                                            <button
-                                                type="button"
-                                                className="btn btn-danger btn-block"
-                                                onClick={this.handleEmptyCart}
-                                            >
-                                                <i className="fas fa-times mr-1"></i>Cancel
-                                            </button>
-                                        </div>
-                                        <div className="col-6">
-                                            <button
-                                                type="button"
-                                                className="btn btn-primary btn-block"
-                                                disabled={!supplier_id}
-                                                onClick={this.handleClickSubmit}
-                                            >
-                                                <i className="fas fa-save mr-1"></i>Save
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </>
-                        )}
+        {/* Estado */}
+        {cart.length > 0 && (
+            <div className="card mb-3">
+                <div className="card-body py-3">
+                    <label className="small font-weight-bold mb-2">
+                        <i className="fas fa-flag mr-1"></i>Estado
+                    </label>
+                    <div className="btn-group btn-group-toggle w-100" data-toggle="buttons">
+                        <label className={`btn btn-sm ${status === "pending" ? "btn-warning active" : "btn-outline-warning"}`}>
+                            <input type="radio" value="pending" checked={status === "pending"} onChange={this.handleStatusChange} />
+                            Pendiente
+                        </label>
+                        <label className={`btn btn-sm ${status === "completed" ? "btn-success active" : "btn-outline-success"}`}>
+                            <input type="radio" value="completed" checked={status === "completed"} onChange={this.handleStatusChange} />
+                            Completado
+                        </label>
+                        <label className={`btn btn-sm ${status === "cancelled" ? "btn-danger active" : "btn-outline-danger"}`}>
+                            <input type="radio" value="cancelled" checked={status === "cancelled"} onChange={this.handleStatusChange} />
+                            Cancelado
+                        </label>
                     </div>
                 </div>
+            </div>
+        )}
+
+        {/* Monto Total (fijo al final) */}
+        {cart.length > 0 && (
+            <div className="card bg-light border-0 shadow-sm mb-3">
+                <div className="card-body text-center py-4">
+                    <small className="text-muted d-block mb-2">Monto Total</small>
+                    <h3 className="text-success mb-1">
+                        $ {this.getTotal(cart)}
+                    </h3>
+                    <div className="h5 text-secondary">
+                        {(this.getTotal(cart) * window.dolarBcv)
+                            .toFixed(2)
+                            .replace('.', ',')
+                            .replace(/\B(?=(\d{3})+(?!\d))/g, '.')} Bs.
+                    </div>
+                </div>
+            </div>
+        )}
+
+        {/* Botones siempre visibles */}
+        {cart.length > 0 && (
+            <div className="purchase-actions">
+                <div className="row">
+                    <div className="col-6">
+                        <button type="button" className="btn btn-danger btn-block" onClick={this.handleEmptyCart}>
+                            Cancelar
+                        </button>
+                    </div>
+                    <div className="col-6">
+                        <button type="button" className="btn btn-primary btn-block" disabled={!supplier_id} onClick={this.handleClickSubmit}>
+                            Guardar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )}
+    </div>
+</div>
             </div>
         );
     }

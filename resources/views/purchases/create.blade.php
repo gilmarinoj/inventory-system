@@ -16,6 +16,10 @@
     </div>
 @endsection
 
+<script>
+    window.dolarBcv = {{ $dolar_bcv }};
+</script>
+
 @section('content')
     <div class="container-fluid">
         <div id="purchase"></div>
@@ -47,13 +51,13 @@
             text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
 
         .order-product .item:hover {
             border-color: #007bff;
             transform: translateY(-3px);
-            box-shadow: 0 4px 8px rgba(0,123,255,0.2);
+            box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
         }
 
         .order-product .item img {
@@ -118,7 +122,7 @@
             background: #fff;
             padding: 15px;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
             margin-bottom: 15px;
         }
 
@@ -129,7 +133,7 @@
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 15px;
-            box-shadow: 0 4px 8px rgba(102,126,234,0.3);
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
         }
 
         .purchase-total .amount {
@@ -162,7 +166,7 @@
 
         .product-search input:focus {
             border-color: #007bff;
-            box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.15);
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.15);
         }
 
         /* Cart Card */

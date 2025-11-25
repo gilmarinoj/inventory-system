@@ -54,34 +54,40 @@ class Cart extends Component {
     }
 
     loadCustomers() {
-        axios.get(`/admin/customers`, {
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            }
-        }).then((res) => {
-            const customers = res.data;
-            this.setState({ customers });
-        }).catch((error) => {
-            console.error("Error loading customers:", error);
-            this.setState({ customers: [] });
-        });
+        axios
+            .get(`/admin/customers`, {
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json",
+                },
+            })
+            .then((res) => {
+                const customers = res.data;
+                this.setState({ customers });
+            })
+            .catch((error) => {
+                console.error("Error loading customers:", error);
+                this.setState({ customers: [] });
+            });
     }
 
     loadProducts(search = "") {
         const query = !!search ? `?search=${search}` : "";
-        axios.get(`/admin/products${query}`, {
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            }
-        }).then((res) => {
-            const products = res.data.data || [];
-            this.setState({ products });
-        }).catch((error) => {
-            console.error("Error loading products:", error);
-            this.setState({ products: [] });
-        });
+        axios
+            .get(`/admin/products${query}`, {
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json",
+                },
+            })
+            .then((res) => {
+                const products = res.data.data || [];
+                this.setState({ products });
+            })
+            .catch((error) => {
+                console.error("Error loading products:", error);
+                this.setState({ products: [] });
+            });
     }
 
     handleOnChangeBarcode(event) {
@@ -90,18 +96,21 @@ class Cart extends Component {
     }
 
     loadCart() {
-        axios.get("/admin/cart", {
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            }
-        }).then((res) => {
-            const cart = Array.isArray(res.data) ? res.data : [];
-            this.setState({ cart });
-        }).catch((error) => {
-            console.error("Error loading cart:", error);
-            this.setState({ cart: [] });
-        });
+        axios
+            .get("/admin/cart", {
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json",
+                },
+            })
+            .then((res) => {
+                const cart = Array.isArray(res.data) ? res.data : [];
+                this.setState({ cart });
+            })
+            .catch((error) => {
+                console.error("Error loading cart:", error);
+                this.setState({ cart: [] });
+            });
     }
     handleScanBarcode(event) {
         event.preventDefault();
@@ -212,37 +221,113 @@ class Cart extends Component {
         this.setState({ customer_id: event.target.value });
     }
     handleClickSubmit() {
+        const totalUsd = parseFloat(this.getTotal(this.state.cart));
+        const totalBs = totalUsd * window.dolarBcv;
+
         Swal.fire({
-            title: this.state.translations["received_amount"],
-            input: "text",
-            inputValue: this.getTotal(this.state.cart),
-            cancelButtonText: this.state.translations["cancel_pay"],
+            title: "Confirmar Venta",
+            html: `
+            <div class="text-left mb-3">
+                <p><strong>Total Base:</strong> $ ${totalUsd.toFixed(2)}</p>
+                <p><strong>Equivalente BCV:</strong> ${totalBs
+                    .toFixed(2)
+                    .replace(".", ",")} Bs.</p>
+            </div>
+            <hr>
+            <div class="text-center mb-3">
+                <label class="font-weight-bold h5">Monto a Cobrar (en Dólares)</label>
+                <input type="number" id="amount-usd" class="form-control form-control-lg text-center font-weight-bold" 
+                       value="${totalUsd.toFixed(
+                           2
+                       )}" step="0.01" min="${totalUsd.toFixed(2)}"
+                       style="font-size: 2em;">
+                <div class="mt-3">
+                    <small class="text-muted">Equivalente en Bolívares:</small>
+                    <h3 id="equiv-bs" class="text-primary mb-0">
+                        ${totalBs.toFixed(2).replace(".", ",")} Bs.
+                    </h3>
+                </div>
+            </div>
+        `,
             showCancelButton: true,
-            confirmButtonText: this.state.translations["confirm_pay"],
-            showLoaderOnConfirm: true,
-            preConfirm: (amount) => {
-                return axios
+            confirmButtonText: "Confirmar Venta",
+            cancelButtonText: "Cancelar",
+            focusConfirm: false,
+            didOpen: () => {
+                const inputUsd = document.getElementById("amount-usd");
+                const equivBs = document.getElementById("equiv-bs");
+
+                inputUsd.addEventListener("input", () => {
+                    const usd = parseFloat(inputUsd.value) || 0;
+                    const bs = usd * window.dolarBcv;
+                    equivBs.textContent =
+                        bs
+                            .toFixed(2)
+                            .replace(".", ",")
+                            .replace(/\B(?=(\d{3})+(?!\d))/g, ".") + " Bs.";
+                });
+            },
+            preConfirm: () => {
+                const amountUsd = parseFloat(
+                    document.getElementById("amount-usd").value
+                );
+                if (isNaN(amountUsd) || amountUsd < totalUsd) {
+                    Swal.showValidationMessage(
+                        "El monto debe ser mayor o igual al total base"
+                    );
+                    return false;
+                }
+                return amountUsd;
+            },
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const amountUsd = result.value;
+                const amountBs = amountUsd * window.dolarBcv;
+
+                axios
                     .post("/admin/orders", {
-                        customer_id: this.state.customer_id,
-                        amount,
+                        customer_id: this.state.customer_id || null,
+                        amount: amountUsd, // siempre guardamos en dólares
+                        notes:
+                            amountUsd > totalUsd
+                                ? `Cobrado en bolívares: ${amountBs
+                                      .toFixed(2)
+                                      .replace(".", ",")} Bs. (recargo)`
+                                : null,
                     })
                     .then((res) => {
                         this.loadCart();
-                        return res.data;
+                        Swal.fire(
+                            "¡Venta Exitosa!",
+                            amountUsd > totalUsd
+                                ? `Cobrado $ ${amountUsd.toFixed(
+                                      2
+                                  )} (≈ ${amountBs
+                                      .toFixed(2)
+                                      .replace(".", ",")} Bs.)`
+                                : `Cobrado $ ${amountUsd.toFixed(2)}`,
+                            "success"
+                        );
                     })
                     .catch((err) => {
-                        Swal.showValidationMessage(err.response.data.message);
+                        Swal.fire(
+                            "Error",
+                            err.response?.data?.message ||
+                                "No se pudo procesar",
+                            "error"
+                        );
                     });
-            },
-            allowOutsideClick: () => !Swal.isLoading(),
-        }).then((result) => {
-            if (result.value) {
-                //
             }
         });
     }
     render() {
-        const { cart = [], products = [], customers = [], barcode = "", translations = {} } = this.state;
+        const {
+            cart = [],
+            products = [],
+            customers = [],
+            barcode = "",
+            translations = {},
+        } = this.state;
         return (
             <div className="row">
                 <div className="col-md-6 col-lg-4">
@@ -252,7 +337,10 @@ class Cart extends Component {
                                 <input
                                     type="text"
                                     className="form-control"
-                                    placeholder={translations["scan_barcode"] || "Scan Barcode"}
+                                    placeholder={
+                                        translations["scan_barcode"] ||
+                                        "Scan Barcode"
+                                    }
                                     value={barcode}
                                     onChange={this.handleOnChangeBarcode}
                                 />
@@ -264,7 +352,8 @@ class Cart extends Component {
                                 onChange={this.setCustomerId}
                             >
                                 <option value="">
-                                    {translations["general_customer"] || "General Customer"}
+                                    {translations["cliente_anonimo"] ||
+                                        "Cliente Anonimo"}
                                 </option>
                                 {customers.map((cus) => (
                                     <option
@@ -279,58 +368,94 @@ class Cart extends Component {
                         <div className="card">
                             <table className="table table-striped">
                                 <thead>
-                                <tr>
-                                    <th>{translations["product_name"] || "Product"}</th>
-                                    <th>{translations["quantity"] || "Qty"}</th>
-                                    <th className="text-right">
-                                        {translations["price"] || "Price"}
-                                    </th>
-                                </tr>
+                                    <tr>
+                                        <th>
+                                            {translations["Producto"] ||
+                                                "Producto"}
+                                        </th>
+                                        <th>
+                                            {translations["Cantidad"] ||
+                                                "Cantidad"}
+                                        </th>
+                                        <th className="text-right">
+                                            {translations["Precio"] || "Precio"}
+                                        </th>
+                                    </tr>
                                 </thead>
                                 <tbody>
-                                {cart.map((c) => (
-                                    <tr key={c.id}>
-                                        <td>{c.name}</td>
-                                        <td>
-                                            <input
-                                                type="text"
-                                                className="form-control form-control-sm qty"
-                                                value={c.pivot.quantity}
-                                                onChange={(event) =>
-                                                    this.handleChangeQty(
-                                                        c.id,
-                                                        event.target.value
+                                    {cart.map((c) => (
+                                        <tr key={c.id}>
+                                            <td>{c.name}</td>
+                                            <td>
+                                                <input
+                                                    type="text"
+                                                    className="form-control form-control-sm qty"
+                                                    value={c.pivot.quantity}
+                                                    onChange={(event) =>
+                                                        this.handleChangeQty(
+                                                            c.id,
+                                                            event.target.value
+                                                        )
+                                                    }
+                                                />
+                                                <button
+                                                    className="btn btn-danger btn-sm"
+                                                    onClick={() =>
+                                                        this.handleClickDelete(
+                                                            c.id
+                                                        )
+                                                    }
+                                                >
+                                                    <i className="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                            <td className="text-right">
+                                                <div>
+                                                    <strong className="text-success">
+                                                        ${" "}
+                                                        {(
+                                                            c.price *
+                                                            c.pivot.quantity
+                                                        ).toFixed(2)}
+                                                    </strong>
+                                                </div>
+                                                <small className="text-muted">
+                                                    {(
+                                                        c.price *
+                                                        c.pivot.quantity *
+                                                        window.dolarBcv
                                                     )
-                                                }
-                                            />
-                                            <button
-                                                className="btn btn-danger btn-sm"
-                                                onClick={() =>
-                                                    this.handleClickDelete(
-                                                        c.id
-                                                    )
-                                                }
-                                            >
-                                                <i className="fas fa-trash"></i>
-                                            </button>
-                                        </td>
-                                        <td className="text-right">
-                                            {window.APP.currency_symbol}{" "}
-                                            {(
-                                                c.price * c.pivot.quantity
-                                            ).toFixed(2)}
-                                        </td>
-                                    </tr>
-                                ))}
+                                                        .toFixed(2)
+                                                        .replace(".", ",")
+                                                        .replace(
+                                                            /\B(?=(\d{3})+(?!\d))/g,
+                                                            "."
+                                                        )}{" "}
+                                                    Bs.
+                                                </small>
+                                            </td>
+                                        </tr>
+                                    ))}
                                 </tbody>
                             </table>
                         </div>
                     </div>
 
-                    <div className="row">
-                        <div className="col">{translations["total"] || "Total"}:</div>
+                    <div className="row mb-3">
+                        <div className="col">
+                            <strong>{translations["total"] || "Total"}:</strong>
+                        </div>
                         <div className="col text-right">
-                            {window.APP.currency_symbol} {this.getTotal(cart)}
+                            <div className="text-success font-weight-bold">
+                                $ {this.getTotal(cart)}
+                            </div>
+                            <small className="text-muted">
+                                {(this.getTotal(cart) * window.dolarBcv)
+                                    .toFixed(2)
+                                    .replace(".", ",")
+                                    .replace(/\B(?=(\d{3})+(?!\d))/g, ".")}{" "}
+                                Bs.
+                            </small>
                         </div>
                     </div>
                     <div className="row">
@@ -341,7 +466,7 @@ class Cart extends Component {
                                 onClick={this.handleEmptyCart}
                                 disabled={!cart.length}
                             >
-                                {translations["cancel"] || "Cancel"}
+                                {translations["cancelar"] || "Cancelar"}
                             </button>
                         </div>
                         <div className="col">
@@ -351,7 +476,8 @@ class Cart extends Component {
                                 disabled={!cart.length}
                                 onClick={this.handleClickSubmit}
                             >
-                                {translations["checkout"] || "Checkout"}
+                                {translations["Confimar_Venta"] ||
+                                    "Confirmar Venta"}
                             </button>
                         </div>
                     </div>
@@ -361,7 +487,10 @@ class Cart extends Component {
                         <input
                             type="text"
                             className="form-control"
-                            placeholder={(translations["search_product"] || "Search Product") + "..."}
+                            placeholder={
+                                (translations["buscar_producto"] ||
+                                    "Buscar Producto") + "..."
+                            }
                             onChange={this.handleChangeSearch}
                             onKeyDown={this.handleSeach}
                         />
@@ -383,6 +512,24 @@ class Cart extends Component {
                                 >
                                     {p.name}({p.quantity})
                                 </h5>
+                                <div className="text-center mt-1">
+                                    <small className="text-success font-weight-bold">
+                                        $ {parseFloat(p.price).toFixed(2)}
+                                    </small>
+                                    <br />
+                                    <small className="text-muted">
+                                        {window.dolarBcv
+                                            ? (p.price * window.dolarBcv)
+                                                  .toFixed(2)
+                                                  .replace(".", ",")
+                                                  .replace(
+                                                      /\B(?=(\d{3})+(?!\d))/g,
+                                                      "."
+                                                  )
+                                            : "..."}{" "}
+                                        Bs.
+                                    </small>
+                                </div>
                             </div>
                         ))}
                     </div>
