@@ -62,6 +62,8 @@ class OrderController extends Controller
                 $order->payments()->create([
                     'amount' => $request->amount,
                     'user_id' => $request->user()->id,
+                    'is_bs_payment' => $request->boolean('is_bs_payment', false),  // NUEVO
+                    'notes' => $request->notes,
                 ]);
 
                 return $order;

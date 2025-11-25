@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -111,9 +112,16 @@ class Order extends Model
     public function receivedAmount(): float
     {
         if ($this->relationLoaded('payments')) {
-            return (float) $this->payments->sum(fn($payment): float => (float) $payment->amount);
+            return (float) $this->payments->sum('amount');
         }
+
         return (float) $this->payments()->sum('amount');
+    }
+
+    public function changeDue(): float
+    {
+        $balance = $this->remainingBalance();
+        return $balance < 0 ? abs($balance) : 0.0;
     }
 
     /**
@@ -129,7 +137,24 @@ class Order extends Model
      */
     public function remainingBalance(): float
     {
-        return $this->total() - $this->receivedAmount();
+        $total = $this->total();
+        $received = $this->receivedAmount(); // ← monto real cobrado
+
+        // ¿Hay ALGÚN pago marcado como "pago en bolívares"?
+        $hasBsPayment = $this->relationLoaded('payments')
+            ? $this->payments->where('is_bs_payment', true)->isNotEmpty()
+            : $this->payments()->where('is_bs_payment', true)->exists();
+
+        // Si fue pago en bolívares → NUNCA hay vuelto (aunque hayas cobrado de más)
+        if ($hasBsPayment) {
+            return $received >= $total ? 0.0 : $total - $received;
+        }
+
+        // Si fue pago en dólares → SÍ puede haber vuelto negativo
+        $balance = $total - $received;
+
+        // Pero nunca mostramos positivo si ya está pagado (solo negativo o cero)
+        return $balance > 0 ? $balance : $balance; // permite negativo
     }
 
     /**
@@ -137,7 +162,10 @@ class Order extends Model
      */
     public function isFullyPaid(): bool
     {
-        return $this->receivedAmount() >= $this->total();
+        if ($this->relationLoaded('payments')) {
+            return (float) $this->payments->sum('amount');
+        }
+        return (float) $this->payments()->sum('amount');
     }
 
     /**

@@ -46,8 +46,8 @@
                     @foreach ($orders as $order)
                         @php
                             $orderTotal = $order->total();
-                            $orderReceived = $order->receivedAmount();
-                            $orderRemaining = $orderTotal - $orderReceived;
+                            $orderReceived = $order->receivedAmount(); // ← Monto real cobrado
+                            $orderRemaining = $order->remainingBalance(); // ← $0 si fue pago en Bs. con recargo
                         @endphp
                         <tr>
                             <td>{{ $order->id }}</td>
@@ -72,10 +72,27 @@
                                 @endif
                             </td>
                             <td class="text-center">
-                                <strong class="text-danger">$
-                                    {{ number_format($orderRemaining, 2, ',', '.') }}</strong><br>
-                                <small class="text-muted">{{ number_format($orderRemaining * $dolar_bcv, 2, ',', '.') }}
-                                    Bs.</small>
+                                @php
+                                    $remaining = $order->remainingBalance();
+                                @endphp
+
+                                @if ($remaining > 0)
+                                    <strong class="text-warning">$ {{ number_format($remaining, 2, ',', '.') }}</strong>
+                                    <br><small class="text-muted">Falta por pagar</small>
+                                @elseif ($remaining < 0)
+                                    <strong class="text-danger">$
+                                        {{ number_format(abs($remaining), 2, ',', '.') }}</strong>
+                                    <br><small class="text-muted">Vuelto a devolver (USD)</small>
+                                @else
+                                    <strong class="text-success">$ 0,00</strong>
+                                    @if ($order->receivedAmount() > $order->total() && $order->payments()->where('is_bs_payment', true)->exists())
+                                        <br><small class="text-info">(Recargo Bs. absorbido)</small>
+                                    @endif
+                                @endif
+                                <br>
+                                <small class="text-muted">
+                                    {{ number_format($remaining * $dolar_bcv, 2, ',', '.') }} Bs.
+                                </small>
                             </td>
                             <td>{{ $order->created_at }}</td>
                             <td>

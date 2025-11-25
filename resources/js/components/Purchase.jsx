@@ -294,12 +294,12 @@ class Purchase extends Component {
 
         // Validation
         if (!supplier_id) {
-            Swal.fire("Error!", "Please select a supplier", "error");
+            Swal.fire("Error!", "Por favor seleccione un proveedor", "error");
             return;
         }
 
         if (cart.length === 0) {
-            Swal.fire("Error!", "Please add at least one product", "error");
+            Swal.fire("Error!", "Por favor seleccione al menos un producto", "error");
             return;
         }
 
@@ -318,18 +318,18 @@ class Purchase extends Component {
             : "Unknown";
 
         Swal.fire({
-            title: "Confirm Purchase",
+            title: "Confirmar Compra",
             html: `
                 <div style="text-align: left;">
-                    <p><strong>Supplier:</strong> ${supplierName}</p>
-                    <p><strong>Date:</strong> ${purchase_date}</p>
-                    <p><strong>Total Amount:</strong> ${window.APP.currency_symbol} ${total_amount}</p>
-                    <p><strong>Status:</strong> ${status}</p>
+                    <p><strong>Proveedor:</strong> ${supplierName}</p>
+                    <p><strong>Fecha:</strong> ${purchase_date}</p>
+                    <p><strong>Monto Total:</strong> ${window.APP.currency_symbol} ${total_amount}</p>
+                    <p><strong>Estado:</strong> ${status}</p>
                 </div>
             `,
             showCancelButton: true,
-            confirmButtonText: "Save Purchase",
-            cancelButtonText: "Cancel",
+            confirmButtonText: "Guardar Compra",
+            cancelButtonText: "Cancelar",
             showLoaderOnConfirm: true,
             preConfirm: () => {
                 return axios
@@ -348,7 +348,7 @@ class Purchase extends Component {
                     .catch((err) => {
                         Swal.showValidationMessage(
                             err.response?.data?.message ||
-                                "Failed to create purchase"
+                                "Fallo al realizar la compra!"
                         );
                     });
             },
@@ -356,8 +356,8 @@ class Purchase extends Component {
         }).then((result) => {
             if (result.value) {
                 Swal.fire(
-                    "Success!",
-                    "Purchase created successfully!",
+                    "Perfecto!",
+                    "Compra creada satisfactoriamente!",
                     "success"
                 );
                 // Clear form

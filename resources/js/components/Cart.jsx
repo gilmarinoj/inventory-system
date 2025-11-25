@@ -227,27 +227,33 @@ class Cart extends Component {
         Swal.fire({
             title: "Confirmar Venta",
             html: `
-            <div class="text-left mb-3">
-                <p><strong>Total Base:</strong> $ ${totalUsd.toFixed(2)}</p>
-                <p><strong>Equivalente BCV:</strong> ${totalBs
-                    .toFixed(2)
-                    .replace(".", ",")} Bs.</p>
+        <div class="text-left mb-3">
+            <p><strong>Total Base:</strong> $ ${totalUsd.toFixed(2)}</p>
+            <p><strong>Equivalente BCV:</strong> ${totalBs
+                .toFixed(2)
+                .replace(".", ",")} Bs.</p>
+        </div>
+        <hr>
+        <div class="text-center mb-3">
+            <label class="font-weight-bold h5">Monto a Cobrar</label>
+            <input type="number" id="amount-usd" class="form-control form-control-lg text-center font-weight-bold" 
+                   value="${totalUsd.toFixed(
+                       2
+                   )}" step="0.01" min="${totalUsd.toFixed(2)}"
+                   style="font-size: 2em;">
+            <div class="mt-3">
+                <small class="text-muted">Equivalente en Bolívares:</small>
+                <h3 id="equiv-bs" class="text-primary mb-0">
+                    ${totalBs.toFixed(2).replace(".", ",")} Bs.
+                </h3>
             </div>
-            <hr>
-            <div class="text-center mb-3">
-                <label class="font-weight-bold h5">Monto a Cobrar (en Dólares)</label>
-                <input type="number" id="amount-usd" class="form-control form-control-lg text-center font-weight-bold" 
-                       value="${totalUsd.toFixed(
-                           2
-                       )}" step="0.01" min="${totalUsd.toFixed(2)}"
-                       style="font-size: 2em;">
-                <div class="mt-3">
-                    <small class="text-muted">Equivalente en Bolívares:</small>
-                    <h3 id="equiv-bs" class="text-primary mb-0">
-                        ${totalBs.toFixed(2).replace(".", ",")} Bs.
-                    </h3>
-                </div>
-            </div>
+        </div>
+        <div class="form-check mt-3">
+            <input class="form-check-input" type="checkbox" id="bs-payment">
+            <label class="form-check-label text-danger font-weight-bold" for="bs-payment">
+                Pago en Bolívares (NO generar vuelto si cobra de más)
+            </label>
+        </div>
         `,
             showCancelButton: true,
             confirmButtonText: "Confirmar Venta",
@@ -271,40 +277,43 @@ class Cart extends Component {
                 const amountUsd = parseFloat(
                     document.getElementById("amount-usd").value
                 );
+                const isBsPayment =
+                    document.getElementById("bs-payment").checked;
+
                 if (isNaN(amountUsd) || amountUsd < totalUsd) {
                     Swal.showValidationMessage(
                         "El monto debe ser mayor o igual al total base"
                     );
                     return false;
                 }
-                return amountUsd;
+                return { amountUsd, isBsPayment };
             },
         }).then((result) => {
             if (result.isConfirmed) {
-                const amountUsd = result.value;
+                const { amountUsd, isBsPayment } = result.value;
                 const amountBs = amountUsd * window.dolarBcv;
 
                 axios
                     .post("/admin/orders", {
                         customer_id: this.state.customer_id || null,
-                        amount: amountUsd, // siempre guardamos en dólares
-                        notes:
-                            amountUsd > totalUsd
-                                ? `Cobrado en bolívares: ${amountBs
-                                      .toFixed(2)
-                                      .replace(".", ",")} Bs. (recargo)`
-                                : null,
+                        amount: amountUsd,
+                        is_bs_payment: isBsPayment, // NUEVO
+                        notes: isBsPayment
+                            ? `Pago en bolívares: ${amountBs
+                                  .toFixed(2)
+                                  .replace(".", ",")} Bs.${
+                                  amountUsd > totalUsd ? " (recargo)" : ""
+                              }`
+                            : null,
                     })
                     .then((res) => {
                         this.loadCart();
                         Swal.fire(
                             "¡Venta Exitosa!",
-                            amountUsd > totalUsd
+                            isBsPayment && amountUsd > totalUsd
                                 ? `Cobrado $ ${amountUsd.toFixed(
                                       2
-                                  )} (≈ ${amountBs
-                                      .toFixed(2)
-                                      .replace(".", ",")} Bs.)`
+                                  )} en bolívares (recargo absorbido)`
                                 : `Cobrado $ ${amountUsd.toFixed(2)}`,
                             "success"
                         );
