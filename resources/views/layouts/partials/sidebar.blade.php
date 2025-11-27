@@ -12,6 +12,7 @@
         <!-- Sidebar Menu -->
         <nav class="mt-2">
             <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+                <li class="nav-header">Dashboard</li>
                 <!-- Dashboard -->
                 <li class="nav-item">
                     <a href="{{route('home')}}" class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}">
@@ -19,6 +20,8 @@
                         <p>{{ __('dashboard.title') }}</p>
                     </a>
                 </li>
+
+                <li class="nav-header mt-1">Productos (Inventario)</li>
 
                 <!-- Products -->
                 <li class="nav-item">
@@ -28,12 +31,12 @@
                     </a>
                 </li>
 
-                <li class="nav-header">{{ __('Sales') }}</li>
+                <li class="nav-header">Ventas</li>
                 <!-- POS Cart -->
                 <li class="nav-item">
                     <a href="{{ route('cart.index') }}" class="nav-link {{ activeSegment('cart') }}">
                         <i class="nav-icon fas fa-cart-plus"></i>
-                        <p>{{ __('POS') }}</p>
+                        <p>Nueva Venta (POS)</p>
                     </a>
                 </li>
 
@@ -41,7 +44,7 @@
                 <li class="nav-item">
                     <a href="{{ route('orders.index') }}" class="nav-link {{ activeSegment('orders') }}">
                         <i class="nav-icon fas fa-shopping-cart"></i>
-                        <p>{{ __('Order List') }}</p>
+                        <p>Historial de Ventas</p>
                     </a>
                 </li>
 
@@ -49,17 +52,17 @@
                 <li class="nav-item">
                     <a href="{{ route('customers.index') }}" class="nav-link {{ activeSegment('customers') }}">
                         <i class="nav-icon fas fa-users"></i>
-                        <p>{{ __('customer.title') }}</p>
+                        <p>Clientes</p>
                     </a>
                 </li>
 
-                <li class="nav-header">{{ __('Purchases') }}</li>
+                <li class="nav-header">Proveedores</li>
                 <!-- Purchases (Dropdown) -->
                 <li class="nav-item {{ request()->routeIs('purchases.*') ? 'menu-open' : '' }}">
                     <a href="#" class="nav-link {{ activeSegment('purchases') }}">
                         <i class="nav-icon fas fa-box"></i>
                         <p>
-                            {{ __('Purchases') }}
+                            Pedidos
                             <i class="right fas fa-angle-left"></i>
                         </p>
                     </a>
@@ -67,13 +70,13 @@
                         <li class="nav-item">
                             <a href="{{ route('purchases.create') }}" class="nav-link {{ request()->routeIs('purchases.create') ? 'active' : '' }}">
                                 <i class="far fa-circle nav-icon"></i>
-                                <p>{{ __('New Purchase') }}</p>
+                                <p>Nueva Compra</p>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="{{ route('purchases.index') }}" class="nav-link {{ request()->routeIs('purchases.index') ? 'active' : '' }}">
                                 <i class="far fa-circle nav-icon"></i>
-                                <p>{{ __('All Purchases') }}</p>
+                                <p>Historial de Compras</p>
                             </a>
                         </li>
                     </ul>
@@ -82,16 +85,16 @@
                 <li class="nav-item">
                     <a href="{{ route('suppliers.index') }}" class="nav-link {{ activeSegment('suppliers') }}">
                         <i class="nav-icon fas fa-truck"></i>
-                        <p>{{ __('Supplier') }}</p>
+                        <p>Proveedores</p>
                     </a>
                 </li>
 
-                <li class="nav-header">{{ __('Extra') }}</li>
+                <li class="nav-header">Configuración</li>
                 <!-- Settings -->
                 <li class="nav-item">
                     <a href="{{ route('settings.index') }}" class="nav-link {{ activeSegment('settings') }}">
                         <i class="nav-icon fas fa-cogs"></i>
-                        <p>{{ __('settings.title') }}</p>
+                        <p>Ajustes Generales</p>
                     </a>
                 </li>
 

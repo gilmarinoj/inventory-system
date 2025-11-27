@@ -13,35 +13,60 @@ class BcvRateService
     public function getDollarRate()
     {
         return Cache::remember($this->cacheKey, $this->cacheMinutes * 60, function () {
-            return $this->fetchFromBcvWithFallback();
+            return $this->getBcvDolar();
         });
     }
 
-    private function fetchFromBcvWithFallback()
+    private function getBcvDolar()
     {
         try {
-            $html = $this->getBcvHtml();
+            // Nueva API: DolarAPI (JSON estable, sin scraping)
+            $endpoint = 'https://dolarapi.com/v1/dolares';
+            $ch = curl_init($endpoint);
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_SSL_VERIFYPEER => false,
+                CURLOPT_TIMEOUT => 10,
+                CURLOPT_USERAGENT => 'Mozilla/5.0 (compatible; InventorySystem/1.0)'
+            ]);
 
-            if (!$html) {
-                Log::warning('BCV: No se pudo obtener HTML');
-                return $this->getLastKnownRate();
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if ($response === false || $httpCode !== 200) {
+                Log::warning('DolarAPI: Respuesta inválida (HTTP ' . $httpCode . ')');
+                throw new \Exception('API respuesta falló');
             }
 
-            $rates = $this->parseRates($html);
-
-            if (!$rates || empty($rates['dolar'])) {
-                Log::warning('BCV: No se encontraron tasas');
-                return $this->getLastKnownRate();
+            $data = json_decode($response, true);
+            if (!is_array($data) || empty($data)) {
+                Log::warning('DolarAPI: JSON vacío');
+                throw new \Exception('Parse JSON falló');
             }
 
-            // Guardamos también como "última conocida" por si falla después
-            Cache::put('bcv_last_known_rate', $rates['dolar'], now()->addDays(30));
+            // Busca el objeto BCV (fuente: "BCV")
+            $bcvRate = null;
+            foreach ($data as $item) {
+                if (isset($item['fuente']) && strtoupper($item['fuente']) === 'BCV') {
+                    $bcvRate = (float) $item['promedio']; // O usa 'venta' si prefieres
+                    break;
+                }
+            }
 
-            Log::info('Tasa BCV actualizada', ['dolar' => $rates['dolar']]);
-            return $rates['dolar'];
+            if (!$bcvRate || $bcvRate <= 0) {
+                Log::warning('DolarAPI: No se encontró tasa BCV válida');
+                throw new \Exception('Tasa BCV no encontrada');
+            }
 
+            // Guarda como última conocida
+            Cache::put('bcv_last_known_rate', $bcvRate, now()->addDays(30));
+
+            Log::info('Tasa BCV actualizada vía DolarAPI', ['dolar' => $bcvRate]);
+            return $bcvRate;
         } catch (\Exception $e) {
-            Log::error('Error crítico BCV: ' . $e->getMessage());
+            Log::error('Error DolarAPI BCV: ' . $e->getMessage());
             return $this->getLastKnownRate();
         }
     }
@@ -51,54 +76,12 @@ class BcvRateService
         return Cache::get('bcv_last_known_rate', 243.1105); // fallback final
     }
 
-    // Tu código original (cURL + DOM) – lo dejamos igual
-    private function getBcvHtml()
-    {
-        $ch = curl_init();
-        curl_setopt_array($ch, [
-            CURLOPT_URL => 'https://www.bcv.org.ve/estadisticas/tipo-de-cambio-oficial-del-bcv',
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_TIMEOUT => 15,
-            CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        ]);
-
-        $response = curl_exec($ch);
-        curl_close($ch);
-
-        return $response ?: false;
-    }
-
-    private function parseRates($html)
-    {
-        $dom = new \DOMDocument();
-        @$dom->loadHTML($html);
-        $xpath = new \DOMXPath($dom);
-
-        $parentDiv = $xpath->query("//div[contains(@class, 'view-tipo-de-cambio-oficial-del-bcv')]")->item(0);
-        if (!$parentDiv) return false;
-
-        $rows = $xpath->query(".//div[contains(@class, 'views-row')]", $parentDiv);
-        foreach ($rows as $row) {
-            $id = $row->getAttribute('id');
-            if (strpos($id, 'dolar') !== false) {
-                $strong = $xpath->query(".//strong", $row)->item(0);
-                if ($strong) {
-                    $value = trim($strong->textContent);
-                    $value = str_replace(',', '.', $value);
-                    return floatval($value);
-                }
-            }
-        }
-
-        return false;
-    }
 
     // Para forzar actualización manual (desde el navbar o comando)
     public function refresh()
     {
         Cache::forget($this->cacheKey);
-        return $this->getDollarRate();
+        Cache::forget('bcv_last_known_rate');
+        return $this->getDollarRate(); // Fuerza nueva consulta
     }
 }

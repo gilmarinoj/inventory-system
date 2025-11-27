@@ -16,7 +16,7 @@
         </div>
         @error('email')
         <span class="invalid-feedback" role="alert">
-            <strong>{{ $message }}</strong>
+            <strong>Las credenciales son incorrectas.</strong>
         </span>
         @enderror
     </div>
@@ -32,7 +32,7 @@
         </div>
         @error('password')
         <span class="invalid-feedback" role="alert">
-            <strong>{{ $message }}</strong>
+            <strong>Las credenciales son incorrectas.</strong>
         </span>
         @enderror
     </div>
@@ -54,7 +54,7 @@
     </div>
     <div class="row">
         <div class="col-12">
-            <button type="submit" class="btn btn-primary btn-block">Request new password</button>
+            <button type="submit" class="btn btn-primary btn-block">Solicitar cambio de contraseña</button>
         </div>
         <!-- /.col -->
     </div>

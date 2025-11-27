@@ -4,22 +4,6 @@
     <div class="container-fluid">
         <div class="row">
 
-            <!-- INGRESOS TOTALES -->
-            <div class="col-lg-3 col-6">
-                <div class="small-box bg-success">
-                    <div class="inner">
-                        <h3>$ {{ number_format($income, 2) }}</h3>
-                        <p class="mb-0">{{ __('dashboard.Income') }}</p>
-                        <small class="text-white opacity-75">
-                            Precio Bs: {{ number_format($income * $dolar_bcv, 2, ',', '.') }}
-                        </small>
-                    </div>
-                    <div class="icon"><i class="fas fa-money-bill-wave"></i></div>
-                    <a href="{{ route('orders.index') }}" class="small-box-footer">{{ __('common.More_info') }} <i
-                            class="fas fa-arrow-circle-right"></i></a>
-                </div>
-            </div>
-
             <!-- INGRESOS DE HOY -->
             <div class="col-lg-3 col-6">
                 <div class="small-box bg-success">
@@ -52,12 +36,28 @@
                 </div>
             </div>
 
+            <!-- INGRESOS TOTALES -->
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-success">
+                    <div class="inner">
+                        <h3>$ {{ number_format($income, 2) }}</h3>
+                        <p class="mb-0">Ingresos del mes</p>
+                        <small class="text-white opacity-75">
+                            Precio Bs: {{ number_format($income * $dolar_bcv, 2, ',', '.') }}
+                        </small>
+                    </div>
+                    <div class="icon"><i class="fas fa-money-bill-wave"></i></div>
+                    <a href="{{ route('orders.index') }}" class="small-box-footer">{{ __('common.More_info') }} <i
+                            class="fas fa-arrow-circle-right"></i></a>
+                </div>
+            </div>
+
             <!-- TOTAL DE GASTOS -->
             <div class="col-lg-3 col-6">
                 <div class="small-box bg-danger">
                     <div class="inner">
                         <h3>$ {{ number_format($expenses_total ?? 0, 2) }}</h3>
-                        <p class="mb-0">Total de Gastos</p>
+                        <p class="mb-0">Gastos del mes</p>
                         <small class="text-white opacity-75">
                             Precio Bs: {{ number_format(($expenses_total ?? 0) * $dolar_bcv, 2, ',', '.') }}
                         </small>
