@@ -2,86 +2,53 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Cache;
+use App\Models\DolarBcv;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 class BcvRateService
 {
-    protected $cacheKey = 'bcv_dollar_rate';
-    protected $cacheMinutes = 360; // 6 horas (puedes bajar a 60 si quieres cada hora)
-
-    public function getDollarRate()
+    // Devuelve siempre la última tasa que esté en la DB
+    public function getRate(): float
     {
-        return Cache::remember($this->cacheKey, $this->cacheMinutes * 60, function () {
-            return $this->getBcvDolar();
-        });
+        $rate = DolarBcv::orderByDesc('fecha')
+            ->orderByDesc('hora')
+            ->first()?->tasa;
+
+        // Si por algún motivo la DB está vacía (primera vez), fuerza fetch
+        return $rate ?? $this->refresh();
     }
 
-    private function getBcvDolar()
+    // Fuerza petición a la API y guarda en DB (botón manual o scheduler)
+    public function refresh(): float
     {
         try {
-            // Nueva API: DolarAPI (JSON estable, sin scraping)
-            $endpoint = 'https://dolarapi.com/v1/dolares';
-            $ch = curl_init($endpoint);
-            curl_setopt_array($ch, [
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_FOLLOWLOCATION => true,
-                CURLOPT_SSL_VERIFYPEER => false,
-                CURLOPT_TIMEOUT => 10,
-                CURLOPT_USERAGENT => 'Mozilla/5.0 (compatible; InventorySystem/1.0)'
-            ]);
+            $response = Http::timeout(12)
+                ->withUserAgent('InventorySystem/1.0')
+                ->get('https://ve.dolarapi.com/v1/dolares/oficial');
 
-            $response = curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
-
-            if ($response === false || $httpCode !== 200) {
-                Log::warning('DolarAPI: Respuesta inválida (HTTP ' . $httpCode . ')');
-                throw new \Exception('API respuesta falló');
+            if (!$response->successful() || !isset($response['promedio']) || $response['promedio'] <= 0) {
+                throw new \Exception('Respuesta inválida de la API');
             }
 
-            $data = json_decode($response, true);
-            if (!is_array($data) || empty($data)) {
-                Log::warning('DolarAPI: JSON vacío');
-                throw new \Exception('Parse JSON falló');
-            }
+            $rate = (float) $response['promedio'];
+            $now  = Carbon::now('America/Caracas');
 
-            // Busca el objeto BCV (fuente: "BCV")
-            $bcvRate = null;
-            foreach ($data as $item) {
-                if (isset($item['fuente']) && strtoupper($item['fuente']) === 'BCV') {
-                    $bcvRate = (float) $item['promedio']; // O usa 'venta' si prefieres
-                    break;
-                }
-            }
+            DolarBcv::updateOrCreate(
+                ['fecha' => $now->toDateString(), 'hora' => $now->format('H:i:s')],
+                ['tasa' => $rate]
+            );
 
-            if (!$bcvRate || $bcvRate <= 0) {
-                Log::warning('DolarAPI: No se encontró tasa BCV válida');
-                throw new \Exception('Tasa BCV no encontrada');
-            }
+            Log::info('BCV actualizada manualmente', ['tasa' => $rate]);
 
-            // Guarda como última conocida
-            Cache::put('bcv_last_known_rate', $bcvRate, now()->addDays(30));
-
-            Log::info('Tasa BCV actualizada vía DolarAPI', ['dolar' => $bcvRate]);
-            return $bcvRate;
-        } catch (\Exception $e) {
-            Log::error('Error DolarAPI BCV: ' . $e->getMessage());
-            return $this->getLastKnownRate();
+            return $rate;
+        } catch (\Throwable $e) {
+            Log::error('Error actualizando BCV', ['error' => $e->getMessage()]);
+            // Si falla la API, devuelve la última que sí exista en DB
+            return DolarBcv::orderByDesc('fecha')
+                ->orderByDesc('hora')
+                ->first()?->tasa ?? 243.1105; // solo la primera vez ever
         }
-    }
-
-    private function getLastKnownRate()
-    {
-        return Cache::get('bcv_last_known_rate', 243.1105); // fallback final
-    }
-
-
-    // Para forzar actualización manual (desde el navbar o comando)
-    public function refresh()
-    {
-        Cache::forget($this->cacheKey);
-        Cache::forget('bcv_last_known_rate');
-        return $this->getDollarRate(); // Fuerza nueva consulta
     }
 }

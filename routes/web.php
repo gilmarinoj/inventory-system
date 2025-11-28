@@ -70,10 +70,10 @@ Route::prefix('admin')->middleware(['auth', 'locale'])->group(function (): void 
     })->name('lang.switch');
 
 
-    // BCV Refresh
     Route::get('/bcv-refresh', function () {
-        Cache::forget('bcv_dollar_rate'); // borra el cache viejo
-        (new \App\Services\BcvRateService())->getDollarRate(); // vuelve a pedir al BCV y lo recachea
-        return 'ok';
-    });
+        $rate = app(\App\Services\BcvRateService::class)->refresh();
+        return response()->json([
+            'rate' => number_format($rate, 4, ',', '.')
+        ]);
+    })->name('bcv.refresh');
 });

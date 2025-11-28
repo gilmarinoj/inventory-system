@@ -19,13 +19,10 @@ class HomeController extends Controller
     public function __invoke(): Factory|View|\Illuminate\View\View
     {
         $orders = Order::with(['items', 'payments'])->get();
-        
+
         //Calculos de gastos
         $expenses_total = Purchase::sum('total_amount');
         $expenses_today = Purchase::whereDate('created_at', today())->sum('total_amount');
-
-        $bcvService = new BcvRateService();
-        $dolar_bcv = $bcvService->getDollarRate();
 
         return view('home', [
             'orders_count' => $orders->count(),
@@ -39,7 +36,6 @@ class HomeController extends Controller
             'best_selling_products' => Product::bestSelling()->get(),
             'current_month_products' => Product::currentMonthBestSelling()->get(),
             'past_months_products' => Product::pastMonthsHotProducts()->get(),
-            'dolar_bcv' => $dolar_bcv,
         ]);
     }
 }

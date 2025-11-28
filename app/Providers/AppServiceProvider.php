@@ -3,12 +3,11 @@
 namespace App\Providers;
 
 use App\Models\Setting;
-use App\Providers\AdminComposer;
 use Illuminate\Pagination\Paginator;
-use Illuminate\Support\Facades\App;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
+use App\Services\BcvRateService;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -27,26 +26,18 @@ class AppServiceProvider extends ServiceProvider
     {
         require_once app_path('Helpers/PriceHelper.php');
         Schema::defaultStringLength(191);
+        Paginator::useBootstrap();
 
+        // Settings carga...
         if (! $this->app->runningInConsole()) {
-            // 'key' => 'value'
-            $settings = Setting::all('key', 'value')
-                ->keyBy('key')
-                ->transform(fn($setting) => $setting->value)
-                ->toArray();
-            config([
-                'settings' => $settings
-            ]);
-
-            config(['app.name' => config('settings.app_name')]);
+            $settings = Setting::all('key', 'value')->keyBy('key')->transform(fn($s) => $s->value)->toArray();
+            config(['settings' => $settings]);
+            config(['app.name' => $settings['app_name'] ?? 'Laravel']);
         }
 
-        View::composer('layouts.admin', AdminComposer::class);
+        // UNA SOLA fuente de verdad para $dolar_bcv
         View::composer('*', function ($view) {
-            $rate = cache('bcv_dollar_rate') ?? (new \App\Services\BcvRateService())->getDollarRate();
-            $view->with('dolar_bcv', $rate);
+            $view->with('dolar_bcv', app(\App\Services\BcvRateService::class)->getRate());
         });
-
-        Paginator::useBootstrap();
     }
 }

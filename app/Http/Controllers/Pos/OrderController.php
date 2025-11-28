@@ -7,6 +7,7 @@ use App\Http\Requests\Order\OrderStoreRequest;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Services\BcvRateService;
 
 class OrderController extends Controller
 {
@@ -26,8 +27,7 @@ class OrderController extends Controller
         $total = $orders->sum(fn($order) => $order->total());
         $receivedAmount = $orders->sum(fn($order) => $order->receivedAmount());
 
-        $bcvService = new \App\Services\BcvRateService;
-        $dolar_bcv = $bcvService->getDollarRate();
+        $dolar_bcv = app(BcvRateService::class)->getRate();
 
         return view('orders.index', ['orders' => $orders, 'total' => $total, 'receivedAmount' => $receivedAmount, 'dolar_bcv' => $dolar_bcv]);
     }

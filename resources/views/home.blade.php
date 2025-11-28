@@ -43,7 +43,7 @@
                         <h3>$ {{ number_format($income, 2) }}</h3>
                         <p class="mb-0">Ingresos del mes</p>
                         <small class="text-white opacity-75">
-                            Precio Bs: {{ number_format($income * $dolar_bcv, 2, ',', '.') }}
+                            Precio Bs: {{ number_format($income * $dolar_bcv , 2, ',', '.') }}
                         </small>
                     </div>
                     <div class="icon"><i class="fas fa-money-bill-wave"></i></div>
@@ -59,7 +59,7 @@
                         <h3>$ {{ number_format($expenses_total ?? 0, 2) }}</h3>
                         <p class="mb-0">Gastos del mes</p>
                         <small class="text-white opacity-75">
-                            Precio Bs: {{ number_format(($expenses_total ?? 0) * $dolar_bcv, 2, ',', '.') }}
+                            Precio Bs: {{ number_format(($expenses_total ?? 0) * $dolar_bcv , 2, ',', '.') }}
                         </small>
                     </div>
                     <div class="icon"><i class="fas fa-minus-circle"></i></div>
@@ -95,7 +95,7 @@
 
             <!-- Conversión automática -->
             @php
-                $usdToBs = fn($usd) => number_format($usd * $dolar_bcv, 2, ',', '.');
+                $usdToBs = fn($usd) => number_format($usd * $dolar_bcv , 2, ',', '.');
             @endphp
 
             <div class="row mt-4">

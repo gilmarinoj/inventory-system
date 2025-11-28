@@ -3,23 +3,31 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
 
 class DolarBcv extends Model
 {
     protected $table = 'dolar_bcv';
-    protected $fillable = [
+
+    protected $fillable = ['fecha', 'hora', 'tasa'];
+
+    protected $casts = [
         'fecha' => 'date',
-        'hora' => 'dateTime:H:i:s',
-        'tasa' => 'decimal:4'
+        'hora'  => 'datetime:H:i:s',
+        'tasa'  => 'decimal:4',
     ];
 
-    public static function tasaActual()
+    public static function ultimaTasa(): ?float
     {
-        return static::latest('created_at')->first()?->tasa;
+        return static::orderByDesc('fecha')
+            ->orderByDesc('hora')
+            ->first()?->tasa;
     }
 
-    public static function tasaHoy()
+    public static function tasaHoy(): ?float
     {
-        return static::whereDate('created_at', today())->orderBy('created_at', 'desc')->first();
+        return static::where('fecha', Carbon::today())
+            ->orderByDesc('hora')
+            ->first()?->tasa;
     }
 }

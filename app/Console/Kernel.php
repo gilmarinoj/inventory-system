@@ -21,10 +21,15 @@ class Kernel extends ConsoleKernel
      *
      * @return void
      */
-    protected function schedule(Schedule $schedule)
+    protected function schedule(Schedule $schedule): void
     {
-        $schedule->command('bcv:update-rates')->everySixHours()->withoutOverlapping();
-        // o ->dailyAt('08:00') si prefieres una vez al día
+        $schedule->call(function () {
+            app(\App\Services\BcvRateService::class)->refresh();
+        })->dailyAt('08:00')->timezone('America/Caracas');
+
+        $schedule->call(function () {
+            app(\App\Services\BcvRateService::class)->refresh();
+        })->dailyAt('15:00')->timezone('America/Caracas');
     }
 
     /**

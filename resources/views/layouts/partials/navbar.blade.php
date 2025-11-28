@@ -15,17 +15,39 @@
     <!-- Right navbar links -->
     <ul class="navbar-nav ml-auto">
 
-        <li class="mr-1 mt-2">BCV: {{ number_format($dolar_bcv, 4, ',', '.') }} Bs.</li>
-        <a href="javascript:void(0)" onclick="fetch('/bcv-refresh').then(r => r.text()).then(() => location.reload())"
-            class="small-box-footer mt-2 mr-5" style="cursor:pointer">
-            <i class="fas fa-sync-alt"></i>
-        </a>
+        <li class="nav-item mr-3 mt-2">
+            <span class="text-md" id="bcv-rate">
+                BCV: {{ number_format($dolar_bcv, 4, ',', '.') }} Bs.
+            </span>
+            <a href="javascript:void(0)" onclick="refreshBcvRate()" class="ml-1 text-info" title="Actualizar tasa BCV">
+                <i class="fas fa-sync-alt" id="bcv-spinner"></i>
+            </a>
+        </li>
 
-        <li class="mr-1 mt-2">Paralelo: 15 Bs. </li>
-        <a href="javascript:void(0)" onclick="fetch('/bcv-refresh').then(r => r.text()).then(() => location.reload())"
-            class="small-box-footer mt-2 mr-5" style="cursor:pointer">
-            <i class="fas fa-edit"></i>
-        </a>
+        <li class="nav-item mr-5 mt-2">
+            <span class="text-md">Paralelo: 15 Bs.</span>
+        </li>
+
+        <script>
+            function refreshBcvRate() {
+                const spinner = document.getElementById('bcv-spinner');
+                const rateEl = document.getElementById('bcv-rate');
+
+                spinner.classList.add('fa-spin');
+
+                fetch('{{ route('bcv.refresh') }}')
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.rate) {
+                            rateEl.textContent = 'BCV: ' + data.rate + ' Bs.';
+                        }
+                    })
+                    .finally(() => {
+                        spinner.classList.remove('fa-spin');
+                    });
+            }
+        </script>
+
 
 
         <!-- User Account Dropdown -->
