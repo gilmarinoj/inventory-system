@@ -23,7 +23,7 @@ class ParaleloController extends Controller
 
         return response()->json([
             'success' => true,
-            'rate'    => number_format($tasa, 4, ',', '.')
+            'tasa'    => number_format($tasa, 2, ',', '.')
         ]);
     }
 }

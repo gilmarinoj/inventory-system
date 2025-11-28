@@ -17,15 +17,22 @@
 
         <li class="nav-item mr-3 mt-2">
             <span class="text-md" id="bcv-rate">
-                BCV: {{ number_format($dolar_bcv, 4, ',', '.') }} Bs.
+                BCV: <strong> {{ number_format($dolar_bcv, 4, ',', '.') }} </strong> Bs.
             </span>
-            <a href="javascript:void(0)" onclick="refreshBcvRate()" class="ml-1 text-info" title="Actualizar tasa BCV">
+            <a href="javascript:void(0)" onclick="refreshBcvRate()" class="ml-1 text-blue" title="Actualizar tasa BCV">
                 <i class="fas fa-sync-alt" id="bcv-spinner"></i>
             </a>
         </li>
 
-        <li class="nav-item mr-5 mt-2">
-            <span class="text-md">Paralelo: 15 Bs.</span>
+        <li class="nav-item mr-3 mt-2">
+            <span class="text-md">
+                Paralelo: <strong id="paralelo-rate">{{ \App\Models\DolarParalelo::tasaActualFormateada() }}</strong>
+                Bs.
+            </span>
+            <a href="javascript:void(0)" onclick="openParaleloModal()" class="ml-2 text-blue"
+                title="Actualizar dólar paralelo">
+                <i class="fas fa-edit"></i>
+            </a>
         </li>
 
         <script>

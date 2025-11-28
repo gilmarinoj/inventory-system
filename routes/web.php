@@ -9,6 +9,7 @@ use App\Http\Controllers\Management\SupplierController;
 use App\Http\Controllers\Pos\CartController;
 use App\Http\Controllers\Pos\OrderController;
 use App\Http\Controllers\Settings\SettingController;
+use App\Http\Controllers\ParaleloController;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\Redirector;
 use Illuminate\Support\Facades\Auth;
@@ -76,4 +77,7 @@ Route::prefix('admin')->middleware(['auth', 'locale'])->group(function (): void 
             'rate' => number_format($rate, 4, ',', '.')
         ]);
     })->name('bcv.refresh');
+
+    Route::post('/paralelo/refresh', [ParaleloController::class, 'refresh'])
+        ->name('paralelo.refresh');
 });

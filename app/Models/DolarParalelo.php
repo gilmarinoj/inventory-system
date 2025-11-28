@@ -7,19 +7,21 @@ use Illuminate\Database\Eloquent\Model;
 class DolarParalelo extends Model
 {
     protected $table = 'dolar_paralelo';
-    protected $fillable = [
-        'fecha' => 'date',
-        'hora' => 'dateTime:H:i:s',
-        'tasa' => 'decimal:4'
-    ];
 
-    public static function tasaActual()
+    // ESTO ES LO QUE FALTABA
+    protected $fillable = ['fecha', 'hora', 'tasa'];
+
+    // O si prefieres la forma más segura:
+    // protected $guarded = [];
+
+    public static function tasaActualRaw(): float
     {
-        return static::latest('created_at')->first()?->tasa;
+        return (float) static::latest('created_at')->first()?->tasa ?? 0.00;
     }
 
-    public static function tasaHoy()
+    public static function tasaActualFormateada(): string
     {
-        return static::whereDate('created_at', today())->orderBy('created_at', 'desc')->first();
+        $tasa = static::tasaActualRaw();
+        return number_format($tasa, 2, ',', '.');
     }
 }

@@ -19,9 +19,9 @@
     @yield('css')
     <script>
         window.APP = <?php echo json_encode([
-                            'currency_symbol' => config('settings.currency_symbol'),
-                            'warning_quantity' => config('settings.warning_quantity')
-                        ]) ?>
+            'currency_symbol' => config('settings.currency_symbol'),
+            'warning_quantity' => config('settings.warning_quantity'),
+        ]); ?>
     </script>
 </head>
 
@@ -71,6 +71,113 @@
 
     @yield('js')
     @yield('model')
+
+    {{-- Modal Dólar Paralelo - VERSIÓN QUE FUNCIONA SÍ O SÍ --}}
+    <div class="modal fade" id="paraleloModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-sm" role="document">
+            <form id="paraleloForm">
+                @csrf
+                <div class="modal-content">
+                    <div class="modal-header bg-warning text-dark">
+                        <h5 class="modal-title">Actualizar Dólar Paralelo</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>Nueva tasa (Bs./USD):</label>
+                            <input type="number" step="0.01" class="form-control" name="tasa"
+                                value="{{ \App\Models\DolarParalelo::tasaActualRaw() }}" required min="0.01">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-warning">Guardar</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- Modal Dólar Paralelo - VERSIÓN 100% INFALIBLE CON VITE --}}
+    <div class="modal fade" id="paraleloModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-sm" role="document">
+            <form id="paraleloForm">
+                @csrf
+                <div class="modal-content">
+                    <div class="modal-header bg-warning text-dark">
+                        <h5 class="modal-title">Actualizar Dólar Paralelo</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>Nueva tasa (Bs./USD):</label>
+                            <input type="number" step="0.01" class="form-control" name="tasa"
+                                value="{{ \App\Models\DolarParalelo::tasaActualRaw() }}" required min="0.01">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-warning">Guardar</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ESTE META TAG ES LA CLAVE -->
+    <meta name="paralelo-refresh-url" content="{{ route('paralelo.refresh') }}">
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const refreshUrl = document.querySelector('meta[name="paralelo-refresh-url"]').content;
+
+            window.openParaleloModal = function() {
+                $('#paraleloModal').modal('show');
+            };
+
+            document.getElementById('paraleloForm').onsubmit = function(e) {
+                e.preventDefault();
+
+                const btn = this.querySelector('button[type="submit"]');
+                const original = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+
+                fetch(refreshUrl, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            tasa: this.tasa.value
+                        })
+                    })
+                    .then(r => {
+                        if (!r.ok) throw r;
+                        return r.json();
+                    })
+                    .then(data => {
+                        document.getElementById('paralelo-rate').textContent = data.tasa;
+                        $('#paraleloModal').modal('hide');
+                        if (typeof toastr !== 'undefined') toastr.success('Dólar paralelo actualizado');
+                    })
+                    .catch(err => {
+                        console.error('Error completo:', err);
+                        if (typeof toastr !== 'undefined') toastr.error('Error al guardar');
+                    })
+                    .finally(() => {
+                        btn.disabled = false;
+                        btn.innerHTML = original;
+                    });
+            };
+        });
+    </script>
 </body>
 
 </html>
