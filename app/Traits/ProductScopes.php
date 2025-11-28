@@ -35,60 +35,62 @@ trait ProductScopes
      */
     public function scopeLowStock($query)
     {
-        return $query->where('quantity', '<', 10);
+        return $query->where('quantity', '<', 10)->where('status', true);
     }
 
     /**
      * Scope for best selling products (total sold > 10).
      */
-    public function scopeBestSelling($query)
+    public function scopeBestSelling($query, $limit = 5)
     {
-        return $query->select(
-            'products.*',
-            DB::raw('SUM(order_items.quantity) as total_sold')
-        )
+        return $query->select('products.*')
+            ->selectRaw('COALESCE(SUM(order_items.quantity), 0) as total_sold')
             ->join('order_items', 'order_items.product_id', '=', 'products.id')
             ->groupBy('products.id')
-            ->having('total_sold', '>', 10)
             ->orderByDesc('total_sold')
-            ->limit(10);
+            ->havingRaw('total_sold > 0')
+            ->limit($limit);
     }
 
     /**
      * Scope for current month best selling products.
      */
-    public function scopeCurrentMonthBestSelling($query)
+    public function scopeCurrentMonthBestSelling($query, $limit = 5)
     {
-        return $query->select(
-            'products.*',
-            DB::raw('SUM(order_items.quantity) as total_sold')
-        )
+        return $query->select('products.*')
+            ->selectRaw('COALESCE(SUM(order_items.quantity), 0) as total_sold')
             ->join('order_items', 'order_items.product_id', '=', 'products.id')
             ->join('orders', 'orders.id', '=', 'order_items.order_id')
             ->whereYear('orders.created_at', now()->year)
             ->whereMonth('orders.created_at', now()->month)
             ->groupBy('products.id')
-            ->having('total_sold', '>', 500)
             ->orderByDesc('total_sold')
-            ->limit(10);
+            ->havingRaw('total_sold > 0')
+            ->limit($limit);
     }
 
     /**
      * Scope for past months hot products (6 months).
      */
-    public function scopePastMonthsHotProducts($query)
+    public function scopeCurrentYearBestSelling($query, $limit = 5)
     {
-        return $query->select(
-            'products.*',
-            DB::raw('SUM(order_items.quantity) as total_sold')
-        )
+        return $query->select('products.*')
+            ->selectRaw('COALESCE(SUM(order_items.quantity), 0) as total_sold')
             ->join('order_items', 'order_items.product_id', '=', 'products.id')
             ->join('orders', 'orders.id', '=', 'order_items.order_id')
-            ->where('orders.created_at', '>=', now()->subMonths(6))
+            ->whereYear('orders.created_at', now()->year)
             ->groupBy('products.id')
-            ->having('total_sold', '>', 1000)
             ->orderByDesc('total_sold')
-            ->limit(10);
+            ->havingRaw('total_sold > 0')
+            ->limit($limit);
+    }
+
+    public function scopeLowStockDashboard($query, $limit = 5)
+    {
+        return $query->where('quantity', '<', 3)
+            ->where('status', true)
+            ->orderBy('quantity')
+            ->limit($limit);
     }
 
     public function scopeSearch($query, $term)

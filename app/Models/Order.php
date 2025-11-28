@@ -42,7 +42,8 @@ class Order extends Model
 
     protected $fillable = [
         'customer_id',
-        'user_id'
+        'user_id',
+        'bcv_rate_used'
     ];
 
     /**
@@ -182,5 +183,24 @@ class Order extends Model
     public function scopeDateRange($query, $startDate, string $endDate)
     {
         return $query->whereBetween('created_at', [$startDate, $endDate . ' 23:59:59']);
+    }
+
+    // Total histórico en Bs. usando la tasa del momento de la venta
+    public function totalHistoricalBsd(): float
+    {
+        return round($this->total() * $this->bcv_rate_used, 2);
+    }
+
+    // Monto recibido histórico en Bs.
+    public function receivedHistoricalBsd(): float
+    {
+        return round($this->receivedAmount() * $this->bcv_rate_used, 2);
+    }
+
+    // Remaining balance histórico en Bs.
+    public function remainingHistoricalBsd(): float
+    {
+        $balance = $this->remainingBalance();
+        return $balance != 0 ? round($balance * $this->bcv_rate_used, 2) : 0.0;
     }
 }

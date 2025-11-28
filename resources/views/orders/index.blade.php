@@ -54,13 +54,18 @@
                             <td>{{ $order->getCustomerName() }}</td>
                             <td class="text-center">
                                 <strong class="text-success">$ {{ number_format($orderTotal, 2, ',', '.') }}</strong><br>
-                                <small class="text-muted">{{ number_format($orderTotal * $dolar_bcv, 2, ',', '.') }}
-                                    Bs.</small>
+                                <small class="text-muted">
+                                    {{ number_format($orderTotal * $order->bcv_rate_used, 2, ',', '.') }} Bs.
+                                    @if ($order->bcv_rate_used)
+                                        <em>({{ $order->created_at->format('d/m/Y') }})</em>
+                                    @endif
+                                </small>
                             </td>
                             <td class="text-center">
                                 <strong class="text-info">$ {{ number_format($orderReceived, 2, ',', '.') }}</strong><br>
-                                <small class="text-muted">{{ number_format($orderReceived * $dolar_bcv, 2, ',', '.') }}
-                                    Bs.</small>
+                                <small class="text-muted">
+                                    {{ number_format($orderReceived * $order->bcv_rate_used, 2, ',', '.') }} Bs.
+                                </small>
                             </td>
                             <td>
                                 @if ($orderReceived == 0)
@@ -73,26 +78,36 @@
                             </td>
                             <td class="text-center">
                                 @php
-                                    $remaining = $order->remainingBalance();
+                                    $remainingUsd = $order->remainingBalance(); // puede ser positivo o negativo
+                                    $hasBsPayment = $order->payments()->where('is_bs_payment', true)->exists();
                                 @endphp
 
-                                @if ($remaining > 0)
-                                    <strong class="text-warning">$ {{ number_format($remaining, 2, ',', '.') }}</strong>
-                                    <br><small class="text-muted">Falta por pagar</small>
-                                @elseif ($remaining < 0)
-                                    <strong class="text-danger">$
-                                        {{ number_format(abs($remaining), 2, ',', '.') }}</strong>
-                                    <br><small class="text-muted">Vuelto a devolver (USD)</small>
+                                @if ($remainingUsd > 0)
+                                    <!-- Debe pagar más -->
+                                    <strong class="text-danger">
+                                        $ {{ number_format($remainingUsd, 2, ',', '.') }}
+                                    </strong>
+                                    <br>
+                                    <small class="text-muted">
+                                        {{ number_format($remainingUsd * $order->bcv_rate_used, 2, ',', '.') }} Bs.
+                                    </small>
+                                @elseif ($remainingUsd < 0 && !$hasBsPayment)
+                                    <!-- Hay vuelto a devolver (solo si NO fue pago en Bs.) -->
+                                    <strong class="text-danger">
+                                        Vuelto a devolver (USD)<br>
+                                        $ {{ number_format(abs($remainingUsd), 2, ',', '.') }}
+                                    </strong>
+                                    <br>
+                                    <small class="text-muted">
+                                        -{{ number_format(abs($remainingUsd) * $order->bcv_rate_used, 2, ',', '.') }} Bs.
+                                    </small>
+                                @elseif ($hasBsPayment && $orderReceived >= $orderTotal)
+                                    <!-- Pagó en Bs. y cubrió o dio más → recargo absorbido -->
+                                    <span class="text-success">(Recargo Bs. absorbido)</span>
                                 @else
-                                    <strong class="text-success">$ 0,00</strong>
-                                    @if ($order->receivedAmount() > $order->total() && $order->payments()->where('is_bs_payment', true)->exists())
-                                        <br><small class="text-info">(Recargo Bs. absorbido)</small>
-                                    @endif
+                                    <!-- Pagado exacto o cubierto -->
+                                    <span class="text-success">$ 0.00</span>
                                 @endif
-                                <br>
-                                <small class="text-muted">
-                                    {{ number_format($remaining * $dolar_bcv, 2, ',', '.') }} Bs.
-                                </small>
                             </td>
                             <td>{{ $order->created_at }}</td>
                             <td>
@@ -226,9 +241,9 @@
                 if (items && Array.isArray(items) && items.length > 0) {
                     items.forEach(function(item, index) {
                         var product = item.product || {};
-                        var unitPrice = product.price || 0;
+                        var unitPrice = item.unit_price_usd || product.price || 0;
                         var quantity = item.quantity || 0;
-                        var itemTotal = item.price || 0;
+                        var itemTotal = (item.unit_price_usd || product.price || 0) * quantity;
 
                         itemsHTML += '<tr>' +
                             '<td>' + (index + 1) + '</td>' +

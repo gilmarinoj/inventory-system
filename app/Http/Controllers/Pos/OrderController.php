@@ -40,6 +40,7 @@ class OrderController extends Controller
                 $order = Order::create([
                     'customer_id' => $request->customer_id,
                     'user_id' => $request->user()->id,
+                    'bcv_rate_used' => app(\App\Services\BcvRateService::class)->getRate(),
                 ]);
 
                 // Get cart items
@@ -110,10 +111,14 @@ class OrderController extends Controller
      */
     private function createOrderItem(Order $order, $item): void
     {
+
+        $unitPriceUsd = $item->price; // precio actual del producto en USD
+
         $order->items()->create([
             'price' => $item->price * $item->pivot->quantity,
             'quantity' => $item->pivot->quantity,
             'product_id' => $item->id,
+            'unit_price_usd' => $unitPriceUsd,
         ]);
     }
 

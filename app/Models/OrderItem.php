@@ -35,12 +35,14 @@ class OrderItem extends Model
         'price',
         'quantity',
         'product_id',
-        'order_id'
+        'order_id',
+        'unit_price_usd',
     ];
 
     protected $casts = [
         'price' => 'float',
         'quantity' => 'integer',
+        'unit_price_usd' => 'float',
     ];
 
     /**
@@ -70,8 +72,21 @@ class OrderItem extends Model
     /**
      * Get unit price.
      */
+    // PRECIO UNITARIO REAL de la venta (el que vale oro)
     public function unitPrice(): float
     {
-        return $this->quantity > 0 ? $this->price / $this->quantity : 0;
+        return (float) ($this->attributes['unit_price_usd'] ?? 0);
+    }
+
+    // Alias para que sea obvio en vistas y reportes
+    public function getUnitPriceUsdAttribute(): float
+    {
+        // SIEMPRE devuelve un valor válido, nunca undefined
+        return (float) ($this->attributes['unit_price_usd'] ?? 0);
+    }
+
+    public function getTotalUsdAttribute(): float
+    {
+        return (float) ($this->attributes['price'] ?? 0);
     }
 }

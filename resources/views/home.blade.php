@@ -99,7 +99,7 @@
             @endphp
 
             <div class="row mt-4">
-                @foreach ([['Producto con bajo Stock', $low_stock_products], ['Productos más vendidos (mes actual)', $current_month_products], ['Productos más vendidos del año', $past_months_products], ['Los más vendidos (general)', $best_selling_products]] as [$titulo, $productos])
+                @foreach ([['Producto con bajo Stock', $low_stock_products], ['Productos más vendidos (mes actual)', $current_month_products], ['Productos más vendidos del año', $current_year_products], ['Los más vendidos (general)', $best_selling_products]] as [$titulo, $productos])
                     <div class="col-md-6 mb-4">
                         <h3>{{ $titulo }}</h3>
                         <div class="card">

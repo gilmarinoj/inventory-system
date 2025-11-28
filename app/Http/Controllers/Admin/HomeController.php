@@ -32,10 +32,10 @@ class HomeController extends Controller
             'expenses_total' => $expenses_total,
             'expenses_today' => $expenses_today,
             'customers_count' => Customer::count(),
-            'low_stock_products' => Product::lowStock()->get(),
-            'best_selling_products' => Product::bestSelling()->get(),
-            'current_month_products' => Product::currentMonthBestSelling()->get(),
-            'past_months_products' => Product::pastMonthsHotProducts()->get(),
+            'low_stock_products'        => Product::lowStockDashboard(5)->get(),
+            'best_selling_products'     => Product::bestSelling(5)->get(),
+            'current_month_products'    => Product::currentMonthBestSelling(5)->get(),
+            'current_year_products'     => Product::currentYearBestSelling(5)->get(),
         ]);
     }
 }
