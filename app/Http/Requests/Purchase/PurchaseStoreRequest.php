@@ -31,6 +31,7 @@ class PurchaseStoreRequest extends FormRequest
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.purchase_price' => 'required|numeric|min:0',
+            'parallel_rate_used' => 'required|numeric|min:1',
         ];
     }
 

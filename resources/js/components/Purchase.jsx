@@ -16,6 +16,7 @@ class Purchase extends Component {
             purchase_date: new Date().toISOString().split("T")[0],
             status: "completed",
             notes: "",
+            parallel_rate_used: "",
             translations: {},
         };
 
@@ -131,6 +132,10 @@ class Purchase extends Component {
             this.loadProducts(event.target.value);
         }
     }
+
+    handleParallelRateChange = (e) => {
+        this.setState({ parallel_rate_used: e.target.value });
+    };
 
     addProductToCart(product) {
         // Check if product already in cart
@@ -289,8 +294,15 @@ class Purchase extends Component {
     }
 
     handleClickSubmit() {
-        const { supplier_id, purchase_date, status, notes, cart, suppliers } =
-            this.state;
+        const {
+            supplier_id,
+            purchase_date,
+            status,
+            notes,
+            cart,
+            suppliers,
+            parallel_rate_used,
+        } = this.state;
 
         // Validation
         if (!supplier_id) {
@@ -302,6 +314,15 @@ class Purchase extends Component {
             Swal.fire(
                 "Error!",
                 "Por favor seleccione al menos un producto",
+                "error"
+            );
+            return;
+        }
+
+        if (!parallel_rate_used || parallel_rate_used <= 0) {
+            Swal.fire(
+                "Error!",
+                "Debes ingresar la tasa paralela que te cobró el proveedor",
                 "error"
             );
             return;
@@ -343,6 +364,7 @@ class Purchase extends Component {
                         total_amount,
                         status,
                         notes,
+                        parallel_rate_used,
                         items,
                     })
                     .then((res) => {
@@ -374,6 +396,26 @@ class Purchase extends Component {
                 });
             }
         });
+    }
+
+    getParallelRate() {
+        return parseFloat(this.state.parallel_rate_used) || window.paraleloRate;
+    }
+
+    calcularCostoRealBcv(precioUsd) {
+        const precio = parseFloat(precioUsd) || 0;
+        const paralelo = this.getParallelRate();
+        const bcv = window.dolarBcv || paralelo;
+        if (bcv === 0) return precio.toFixed(2);
+        return ((precio * paralelo) / bcv).toFixed(2);
+    }
+
+    diferenciaPorcentual(precioProv) {
+        const prov = parseFloat(precioProv) || 0;
+        if (prov === 0) return "";
+        const real = this.calcularCostoRealBcv(prov);
+        const diff = ((real / prov - 1) * 100).toFixed(1);
+        return diff > 5 ? `(+${diff}%)` : "";
     }
 
     render() {
@@ -525,6 +567,34 @@ class Purchase extends Component {
                                             </option>
                                         ))}
                                     </select>
+                                    <div className="form-group mt-3">
+                                        <label className="font-weight-bold">
+                                            Tasa Paralelo usada{" "}
+                                            <span className="text-danger">
+                                                *
+                                            </span>
+                                        </label>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            className="form-control form-control-lg text-center"
+                                            placeholder="Ej: 365.50"
+                                            value={
+                                                this.state.parallel_rate_used
+                                            }
+                                            onChange={
+                                                this.handleParallelRateChange
+                                            }
+                                            style={{
+                                                fontSize: "1.0rem",
+                                                fontWeight: "bold",
+                                            }}
+                                        />
+                                        <small className="text-muted">
+                                            Tasa exacta a la que te cobró este
+                                            proveedor
+                                        </small>
+                                    </div>
                                 </div>
                                 <div className="form-group">
                                     <label>
@@ -603,7 +673,7 @@ class Purchase extends Component {
                                                         }}
                                                     />
 
-                                                    {/* PRECIO PROVEEDOR – Arriba, perfecto */}
+                                                    {/* PRECIO PROVEEDOR */}
                                                     <div className="flex items-baseline justify-center text-sm font-bold text-success leading-none">
                                                         <span>$</span>
                                                         <span className="mx-0.5">
@@ -618,7 +688,7 @@ class Purchase extends Component {
                                                         </span>
                                                     </div>
 
-                                                    {/* Bolívares Costo real Proveedor*/}
+                                                    {/* BOLÍVARES PROVEEDOR */}
                                                     <div className="text-xs mt-1 leading-none text-muted">
                                                         {(
                                                             (c.pivot
@@ -634,20 +704,19 @@ class Purchase extends Component {
                                                             )}{" "}
                                                         Bs.
                                                     </div>
-                                                    {/* COSTO REAL BCV – Arriba */}
+
+                                                    {/* COSTO REAL BCV – AHORA USA TU TASA */}
                                                     <div className="flex items-baseline justify-center text-sm font-bold text-danger leading-none mt-1">
                                                         <span>$</span>
                                                         <span className="mx-0.5">
-                                                            {parseFloat(
-                                                                window.calcularCostoRealBcv(
-                                                                    c.pivot
-                                                                        .purchase_price ||
-                                                                        0
-                                                                )
-                                                            ).toFixed(2)}
+                                                            {this.calcularCostoRealBcv(
+                                                                c.pivot
+                                                                    .purchase_price ||
+                                                                    0
+                                                            )}
                                                         </span>
                                                         <span className="text-gray-500 text-xs font-normal ml-1">
-                                                            {window.diferenciaPorcentual(
+                                                            {this.diferenciaPorcentual(
                                                                 c.pivot
                                                                     .purchase_price ||
                                                                     0
@@ -656,15 +725,13 @@ class Purchase extends Component {
                                                         </span>
                                                     </div>
 
-                                                    {/* BOLÍVARES DEL COSTO REAL BCV */}
+                                                    {/* BOLÍVARES DEL COSTO REAL */}
                                                     <div className="text-center text-xs text-muted leading-none mt-1 font-medium">
                                                         {(
-                                                            parseFloat(
-                                                                window.calcularCostoRealBcv(
-                                                                    c.pivot
-                                                                        .purchase_price ||
-                                                                        0
-                                                                )
+                                                            this.calcularCostoRealBcv(
+                                                                c.pivot
+                                                                    .purchase_price ||
+                                                                    0
                                                             ) * window.dolarBcv
                                                         )
                                                             .toFixed(2)
@@ -786,37 +853,46 @@ class Purchase extends Component {
                             </div>
                         )}
 
-                        {/* MONTO TOTAL – VERSIÓN FINAL, LIMPIA Y BRUTAL */}
+                        {/* MONTO TOTAL – LA VERDAD ABSOLUTA, CON TU TASA */}
                         {cart.length > 0 && (
                             <div className="card bg-light border-0 shadow-sm mb-3">
-                                <div className="card-body text-center py-5">
+                                <div className="card-body text-center py-6">
                                     <small className="text-muted d-block mb-4 font-medium">
                                         Monto Total de la Compra
                                     </small>
 
-                                    {/* 1. PRECIO PROVEEDOR (PARALELO) – Grande */}
-                                    <div className="text-gray-500 text-sm mt-1">
-                                        Pago al proveedor (Dólares)
-                                    </div>
-                                    <div className="mb-4">
-                                        <div className="text-success text-xl font-bold leading-tight">
+                                    {/* PRECIO PROVEEDOR – Lo que pagas (en dólares) */}
+                                    <div className="mb-5">
+                                        <div className="text-success font-weight-bold leading-none">
                                             $ {this.getTotal(cart)}
+                                        </div>
+                                        <div className="text-gray-600 font-weight-bold mt-3 font-bold">
+                                            {(
+                                                this.getTotal(cart) *
+                                                window.dolarBcv
+                                            )
+                                                .toFixed(2)
+                                                .replace(".", ",")
+                                                .replace(
+                                                    /\B(?=(\d{3})+(?!\d))/g,
+                                                    "."
+                                                )}{" "}
+                                            Bs.
+                                        </div>
+                                        <div className="text-muted text-sm mt-5">
+                                            Pago al proveedor (tasa paralela que
+                                            ingresaste)
                                         </div>
                                     </div>
 
-                                    {/* Separador sutil */}
-                                    <div className="border-t border-gray-300 my-2">
-                                        Pago al proveedor (Bolívares)
-                                    </div>
-
-                                    {/* 2. COSTO REAL BCV – El que importa, más grande y en rojo */}
+                                    {/* COSTO REAL BCV – LA VERDAD QUE ENTRA A TU INVENTARIO */}
                                     <div>
-                                        <div className="text-danger text-xl font-bold leading-tight">
+                                        <div className="text-danger font-weight-bold leading-none">
                                             ${" "}
                                             {parseFloat(
                                                 cart.reduce((acc, c) => {
                                                     const costoReal =
-                                                        window.calcularCostoRealBcv(
+                                                        this.calcularCostoRealBcv(
                                                             c.pivot
                                                                 .purchase_price ||
                                                                 0
@@ -829,11 +905,12 @@ class Purchase extends Component {
                                                 }, 0)
                                             ).toFixed(2)}
                                         </div>
-                                        <div className="text-muted font-bold text-sm mt-2">
+
+                                        <div className="text-gray-600 font-weight-bold">
                                             {parseFloat(
                                                 cart.reduce((acc, c) => {
                                                     const costoReal =
-                                                        window.calcularCostoRealBcv(
+                                                        this.calcularCostoRealBcv(
                                                             c.pivot
                                                                 .purchase_price ||
                                                                 0

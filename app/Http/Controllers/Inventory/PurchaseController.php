@@ -8,7 +8,7 @@ use App\Http\Requests\Purchase\PurchaseUpdateRequest;
 use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\Supplier;
-use App\Models\DolarParalelo;
+use App\Models\PurchaseItem;
 use App\Models\DolarBcv;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -24,15 +24,32 @@ class PurchaseController extends Controller
      */
     public function index(Request $request): View
     {
-        $purchases = Purchase::with(['supplier', 'user', 'items'])
-            ->filter($request->only(['status', 'supplier_id', 'date_from', 'date_to', 'search']))
-            ->orderBy($request->get('sort_by', 'purchase_date'), $request->get('sort_order', 'desc'))
+        $query = Purchase::with(['supplier', 'user'])
+            ->withCount('items')
+            ->select('purchases.*', 'purchases.parallel_rate_used')
+            ->addSelect([
+                'real_total_bcv' => \App\Models\PurchaseItem::selectRaw('COALESCE(SUM(cost_bcv_equivalent * quantity), 0)')
+                    ->whereColumn('purchase_id', 'purchases.id')
+            ]);
+
+        // Aplicar filtros (tu trait PurchaseScopes ya lo hace)
+        $query->filter($request->only(['status', 'supplier_id', 'date_from', 'date_to', 'search']));
+
+        $purchases = $query->orderBy($request->get('sort_by', 'purchase_date'), $request->get('sort_order', 'desc'))
             ->paginate(10)
             ->withQueryString();
 
         $suppliers = Supplier::orderBy('first_name')->get();
 
-        return view('purchases.index', ['purchases' => $purchases, 'suppliers' => $suppliers]);
+        // Forzar que traiga los campos calculados
+        $purchases->getCollection()->transform(function ($purchase) {
+            $purchase->real_total_bcv = $purchase->items->sum(function ($item) {
+                return $item->cost_bcv_equivalent * $item->quantity;
+            });
+            return $purchase;
+        });
+
+        return view('purchases.index', compact('purchases', 'suppliers'));
     }
 
     /**
@@ -86,19 +103,26 @@ class PurchaseController extends Controller
             ]);
 
             // Create purchase items
+            // NUEVA LÓGICA CON TASA ESPECÍFICA POR COMPRA
+            $parallelRate = (float) $request->parallel_rate_used;
+            $bcvRate = DolarBcv::ultimaTasa(); // fallback
+
+            $realTotalBcv = 0;
+
             foreach ($request->items as $item) {
                 $usdPaid = (float)$item['purchase_price'];
-                $parallelRate = DolarParalelo::tasaActualRaw();
-                $bcvRate = DolarBcv::ultimaTasa() ?? $parallelRate;
 
-                $costBcvEquivalent = ($parallelRate > 0 && $bcvRate > 0)
+                // Cálculo con la tasa REAL que te cobró este proveedor
+                $costBcvEquivalent = $parallelRate > 0
                     ? round($usdPaid * $parallelRate / $bcvRate, 4)
                     : $usdPaid;
+
+                $realTotalBcv += $costBcvEquivalent * $item['quantity'];
 
                 $purchase->items()->create([
                     'product_id'           => $item['product_id'],
                     'quantity'             => $item['quantity'],
-                    'purchase_price'       => $usdPaid,                 // retrocompatibilidad
+                    'purchase_price'       => $usdPaid,
                     'cost_usd_paid'        => $usdPaid,
                     'cost_bcv_equivalent'  => $costBcvEquivalent,
                     'parallel_rate_used'   => $parallelRate,
@@ -107,14 +131,20 @@ class PurchaseController extends Controller
 
                 if ($request->status === 'completed') {
                     $product = Product::find($item['product_id']);
-                    $product->quantity           += $item['quantity'];
+                    $product->quantity += $item['quantity'];
                     $product->purchase_price_usd = $usdPaid;
                     $product->purchase_price_bcv = $costBcvEquivalent;
                     $product->last_parallel_rate = $parallelRate;
-                    $product->last_bcv_rate      = $bcvRate;
+                    $product->last_bcv_rate = $bcvRate;
                     $product->save();
                 }
             }
+
+            // Guardar la tasa y el total real en la compra
+            $purchase->update([
+                'parallel_rate_used' => $parallelRate,
+                'real_total_bcv' => $realTotalBcv,
+            ]);
 
             DB::commit();
 
