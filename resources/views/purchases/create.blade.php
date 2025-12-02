@@ -17,6 +17,29 @@
 @endsection
 
 <script>
+    // Tasas oficiales para todo el frontend (actualizadas en cada carga)
+    window.paraleloRate = @json(\App\Models\DolarParalelo::tasaActualRaw());
+    window.bcvRate = @json(\App\Models\DolarBcv::ultimaTasa() ?? window . paraleloRate);
+
+    // Función global para calcular el costo real BCV
+    window.calcularCostoRealBcv = function(precioUsd) {
+        precioUsd = parseFloat(precioUsd) || 0;
+        if (window.bcvRate <= 0) return precioUsd.toFixed(4);
+        const costoReal = precioUsd * window.paraleloRate / window.bcvRate;
+        return costoReal.toFixed(4);
+    };
+
+    // Función para calcular diferencia porcentual
+    window.diferenciaPorcentual = function(precioProv) {
+        const prov = parseFloat(precioProv) || 0;
+        if (prov === 0) return '';
+        const real = window.calcularCostoRealBcv(prov);
+        const diff = ((real / prov - 1) * 100).toFixed(1);
+        return diff > 5 ? `(+${diff}%)` : '';
+    };
+</script>
+
+<script>
     window.dolarBcv = {{ $dolar_bcv }};
 </script>
 

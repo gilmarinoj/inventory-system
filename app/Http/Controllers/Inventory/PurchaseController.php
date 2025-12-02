@@ -8,6 +8,8 @@ use App\Http\Requests\Purchase\PurchaseUpdateRequest;
 use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\Supplier;
+use App\Models\DolarParalelo;
+use App\Models\DolarBcv;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -85,17 +87,31 @@ class PurchaseController extends Controller
 
             // Create purchase items
             foreach ($request->items as $item) {
+                $usdPaid = (float)$item['purchase_price'];
+                $parallelRate = DolarParalelo::tasaActualRaw();
+                $bcvRate = DolarBcv::ultimaTasa() ?? $parallelRate;
+
+                $costBcvEquivalent = ($parallelRate > 0 && $bcvRate > 0)
+                    ? round($usdPaid * $parallelRate / $bcvRate, 4)
+                    : $usdPaid;
+
                 $purchase->items()->create([
-                    'product_id' => $item['product_id'],
-                    'quantity' => $item['quantity'],
-                    'purchase_price' => $item['purchase_price'],
+                    'product_id'           => $item['product_id'],
+                    'quantity'             => $item['quantity'],
+                    'purchase_price'       => $usdPaid,                 // retrocompatibilidad
+                    'cost_usd_paid'        => $usdPaid,
+                    'cost_bcv_equivalent'  => $costBcvEquivalent,
+                    'parallel_rate_used'   => $parallelRate,
+                    'bcv_rate_used'        => $bcvRate,
                 ]);
 
-                // If status is completed, update stock and purchase price
                 if ($request->status === 'completed') {
                     $product = Product::find($item['product_id']);
-                    $product->quantity += $item['quantity'];
-                    $product->purchase_price = $item['purchase_price'];
+                    $product->quantity           += $item['quantity'];
+                    $product->purchase_price_usd = $usdPaid;
+                    $product->purchase_price_bcv = $costBcvEquivalent;
+                    $product->last_parallel_rate = $parallelRate;
+                    $product->last_bcv_rate      = $bcvRate;
                     $product->save();
                 }
             }
@@ -107,7 +123,6 @@ class PurchaseController extends Controller
 
             return redirect()->route('purchases.index')
                 ->with('success', __('Purchase created successfully!'));
-
         } catch (\Exception $e) {
             DB::rollBack();
 
@@ -171,7 +186,6 @@ class PurchaseController extends Controller
 
             return redirect()->route('purchases.index')
                 ->with('success', __('Purchase updated successfully!'));
-
         } catch (\Exception $e) {
             DB::rollBack();
 
@@ -202,14 +216,13 @@ class PurchaseController extends Controller
 
             DB::commit();
 
-// 💡 CAMBIO CLAVE: Devolver una respuesta JSON de éxito (Código 200/204)
-        return response()->json(['success' => true, 'message' => 'Purchase deleted successfully!'], 200);
+            // 💡 CAMBIO CLAVE: Devolver una respuesta JSON de éxito (Código 200/204)
+            return response()->json(['success' => true, 'message' => 'Purchase deleted successfully!'], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
 
-    } catch (\Exception $e) {
-        DB::rollBack();
-
-        // 💡 CAMBIO CLAVE: Devolver una respuesta JSON de error (Código 500)
-        return response()->json(['success' => false, 'message' => 'Failed to delete purchase: ' . $e->getMessage()], 500);
+            // 💡 CAMBIO CLAVE: Devolver una respuesta JSON de error (Código 500)
+            return response()->json(['success' => false, 'message' => 'Failed to delete purchase: ' . $e->getMessage()], 500);
         }
     }
 

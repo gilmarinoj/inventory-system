@@ -299,7 +299,11 @@ class Purchase extends Component {
         }
 
         if (cart.length === 0) {
-            Swal.fire("Error!", "Por favor seleccione al menos un producto", "error");
+            Swal.fire(
+                "Error!",
+                "Por favor seleccione al menos un producto",
+                "error"
+            );
             return;
         }
 
@@ -419,29 +423,63 @@ class Purchase extends Component {
                                         <small className="text-muted d-block">
                                             Stock: {p.quantity}
                                         </small>
-                                        {p.purchase_price > 0 && (
-                                            <div className="text-center mt-2">
-                                                <small className="text-success font-weight-bold d-block">
-                                                    ${" "}
-                                                    {parseFloat(
-                                                        p.purchase_price
-                                                    ).toFixed(2)}
-                                                </small>
-                                                <small className="text-muted">
-                                                    {(
-                                                        p.purchase_price *
-                                                        window.dolarBcv
+                                        <div className="text-center mt-2">
+                                            <small className="text-success font-weight-bold d-block">
+                                                Costo Proveedor USD: $
+                                                {parseFloat(
+                                                    p.purchase_price_usd ||
+                                                        p.purchase_price ||
+                                                        0
+                                                ).toFixed(2)}
+                                            </small>
+                                            <small className="text-muted text-xs">
+                                                {(
+                                                    parseFloat(
+                                                        p.purchase_price || 0
+                                                    ) * window.dolarBcv
+                                                )
+                                                    .toFixed(2)
+                                                    .replace(".", ",")
+                                                    .replace(
+                                                        /\B(?=(\d{3})+(?!\d))/g,
+                                                        "."
+                                                    )}{" "}
+                                                Bs.
+                                            </small>
+                                            <small className="text-danger font-weight-bold d-block">
+                                                Costo BCV: $
+                                                {parseFloat(
+                                                    window.calcularCostoRealBcv(
+                                                        p.purchase_price_usd ||
+                                                            p.purchase_price ||
+                                                            0
                                                     )
-                                                        .toFixed(2)
-                                                        .replace(".", ",")
-                                                        .replace(
-                                                            /\B(?=(\d{3})+(?!\d))/g,
-                                                            "."
-                                                        )}{" "}
-                                                    Bs.
-                                                </small>
-                                            </div>
-                                        )}
+                                                ).toFixed(2)}
+                                                <span className="text-xs ml-1">
+                                                    {window.diferenciaPorcentual(
+                                                        p.purchase_price_usd ||
+                                                            p.purchase_price ||
+                                                            0
+                                                    )}
+                                                </span>
+                                            </small>
+                                            <small className="text-muted text-xs">
+                                                {(
+                                                    window.calcularCostoRealBcv(
+                                                        p.purchase_price_usd ||
+                                                            p.purchase_price ||
+                                                            0
+                                                    ) * window.dolarBcv
+                                                )
+                                                    .toFixed(2)
+                                                    .replace(".", ",")
+                                                    .replace(
+                                                        /\B(?=(\d{3})+(?!\d))/g,
+                                                        "."
+                                                    )}{" "}
+                                                Bs.
+                                            </small>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
@@ -450,180 +488,404 @@ class Purchase extends Component {
                 </div>
 
                 {/* RIGHT SIDE - Purchase Cart */}
-<div className="col-lg-4 col-md-5">
-    {/* CONTENEDOR CON SCROLL FIJO */}
-    <div style={{ maxHeight: 'calc(100vh - 180px)', overflowY: 'auto', paddingRight: '8px' }}>
-        {/* Información de Compra (Proveedor + Fecha) */}
-        <div className="card card-primary card-outline mb-3">
-            <div className="card-header">
-                <h3 className="card-title">
-                    <i className="fas fa-truck mr-2"></i>Información de Compra
-                </h3>
-            </div>
-            <div className="card-body">
-                <div className="form-group">
-                    <label>Proveedor <span className="text-danger">*</span></label>
-                    <select className="form-control" value={supplier_id} onChange={this.setSupplierId}>
-                        <option value="">Seleccionar Proveedor</option>
-                        {suppliersList.map((sup) => (
-                            <option key={sup.id} value={sup.id}>
-                                {`${sup.first_name} ${sup.last_name}`}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-                <div className="form-group">
-                    <label>Fecha de Compra <span className="text-danger">*</span></label>
-                    <input type="date" className="form-control" value={purchase_date} onChange={this.handleDateChange} />
-                </div>
-            </div>
-        </div>
-
-        {/* Productos en el carrito */}
-        <div className="card card-secondary card-outline mb-3">
-            <div className="card-header">
-                <h3 className="card-title">
-                    <i className="fas fa-shopping-basket mr-2"></i>Productos
-                </h3>
-            </div>
-            <div className="card-body p-0 purchase-cart">
-                <table className="table table-sm table-hover mb-0">
-                    <thead>
-                        <tr>
-                            <th>Producto</th>
-                            <th width="70">Cant.</th>
-                            <th width="90">Precio</th>
-                            <th width="40"></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {cart.map((c) => (
-                            <tr key={c.id}>
-                                <td><small className="font-weight-bold">{c.name}</small></td>
-                                <td>
+                <div className="col-lg-4 col-md-5">
+                    {/* CONTENEDOR CON SCROLL FIJO */}
+                    <div
+                        style={{
+                            maxHeight: "calc(100vh - 180px)",
+                            overflowY: "auto",
+                            paddingRight: "8px",
+                        }}
+                    >
+                        {/* Información de Compra (Proveedor + Fecha) */}
+                        <div className="card card-primary card-outline mb-3">
+                            <div className="card-header">
+                                <h3 className="card-title">
+                                    <i className="fas fa-truck mr-2"></i>
+                                    Información de Compra
+                                </h3>
+                            </div>
+                            <div className="card-body">
+                                <div className="form-group">
+                                    <label>
+                                        Proveedor{" "}
+                                        <span className="text-danger">*</span>
+                                    </label>
+                                    <select
+                                        className="form-control"
+                                        value={supplier_id}
+                                        onChange={this.setSupplierId}
+                                    >
+                                        <option value="">
+                                            Seleccionar Proveedor
+                                        </option>
+                                        {suppliersList.map((sup) => (
+                                            <option key={sup.id} value={sup.id}>
+                                                {`${sup.first_name} ${sup.last_name}`}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="form-group">
+                                    <label>
+                                        Fecha de Compra{" "}
+                                        <span className="text-danger">*</span>
+                                    </label>
                                     <input
-                                        type="number"
+                                        type="date"
+                                        className="form-control"
+                                        value={purchase_date}
+                                        onChange={this.handleDateChange}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Productos en el carrito */}
+                        <div className="card card-secondary card-outline mb-3">
+                            <div className="card-header">
+                                <h3 className="card-title">
+                                    <i className="fas fa-shopping-basket mr-2"></i>
+                                    Productos
+                                </h3>
+                            </div>
+                            <div className="card-body p-0 purchase-cart">
+                                <table className="table table-sm table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Producto</th>
+                                            <th width="70">Cant.</th>
+                                            <th width="90">Precio</th>
+                                            <th width="40"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {cart.map((c) => (
+                                            <tr key={c.id}>
+                                                <td>
+                                                    <small className="font-weight-bold">
+                                                        {c.name}
+                                                    </small>
+                                                </td>
+                                                <td>
+                                                    <input
+                                                        type="number"
+                                                        className="form-control form-control-sm"
+                                                        value={c.pivot.quantity}
+                                                        onChange={(e) =>
+                                                            this.handleChangeQty(
+                                                                c.id,
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                        min="1"
+                                                    />
+                                                </td>
+                                                <td className="text-center">
+                                                    <input
+                                                        type="number"
+                                                        className="form-control form-control-sm text-center mb-2"
+                                                        value={
+                                                            c.pivot
+                                                                .purchase_price ||
+                                                            0
+                                                        }
+                                                        onChange={(e) =>
+                                                            this.handleChangePrice(
+                                                                c.id,
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                        min="0"
+                                                        step="0.01"
+                                                        style={{
+                                                            fontWeight: "bold",
+                                                        }}
+                                                    />
+
+                                                    {/* PRECIO PROVEEDOR – Arriba, perfecto */}
+                                                    <div className="flex items-baseline justify-center text-sm font-bold text-success leading-none">
+                                                        <span>$</span>
+                                                        <span className="mx-0.5">
+                                                            {parseFloat(
+                                                                c.pivot
+                                                                    .purchase_price ||
+                                                                    0
+                                                            ).toFixed(2)}
+                                                        </span>
+                                                        <span className="text-gray-500 text-xs font-normal ml-1">
+                                                            (Proveedor)
+                                                        </span>
+                                                    </div>
+
+                                                    {/* Bolívares Costo real Proveedor*/}
+                                                    <div className="text-xs mt-1 leading-none text-muted">
+                                                        {(
+                                                            (c.pivot
+                                                                .purchase_price ||
+                                                                0) *
+                                                            window.dolarBcv
+                                                        )
+                                                            .toFixed(2)
+                                                            .replace(".", ",")
+                                                            .replace(
+                                                                /\B(?=(\d{3})+(?!\d))/g,
+                                                                "."
+                                                            )}{" "}
+                                                        Bs.
+                                                    </div>
+                                                    {/* COSTO REAL BCV – Arriba */}
+                                                    <div className="flex items-baseline justify-center text-sm font-bold text-danger leading-none mt-1">
+                                                        <span>$</span>
+                                                        <span className="mx-0.5">
+                                                            {parseFloat(
+                                                                window.calcularCostoRealBcv(
+                                                                    c.pivot
+                                                                        .purchase_price ||
+                                                                        0
+                                                                )
+                                                            ).toFixed(2)}
+                                                        </span>
+                                                        <span className="text-gray-500 text-xs font-normal ml-1">
+                                                            {window.diferenciaPorcentual(
+                                                                c.pivot
+                                                                    .purchase_price ||
+                                                                    0
+                                                            )}{" "}
+                                                            (Costo BCV)
+                                                        </span>
+                                                    </div>
+
+                                                    {/* BOLÍVARES DEL COSTO REAL BCV */}
+                                                    <div className="text-center text-xs text-muted leading-none mt-1 font-medium">
+                                                        {(
+                                                            parseFloat(
+                                                                window.calcularCostoRealBcv(
+                                                                    c.pivot
+                                                                        .purchase_price ||
+                                                                        0
+                                                                )
+                                                            ) * window.dolarBcv
+                                                        )
+                                                            .toFixed(2)
+                                                            .replace(".", ",")
+                                                            .replace(
+                                                                /\B(?=(\d{3})+(?!\d))/g,
+                                                                "."
+                                                            )}{" "}
+                                                        Bs.
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <button
+                                                        className="btn btn-danger btn-xs"
+                                                        onClick={() =>
+                                                            this.handleClickDelete(
+                                                                c.id
+                                                            )
+                                                        }
+                                                    >
+                                                        <i className="fas fa-times"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                                {cart.length === 0 && (
+                                    <div className="text-center text-muted py-4">
+                                        <p>No hay productos en el carrito</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Notas */}
+                        {cart.length > 0 && (
+                            <div className="card mb-3">
+                                <div className="card-body py-3">
+                                    <label className="small">
+                                        Notas (opcional)
+                                    </label>
+                                    <textarea
                                         className="form-control form-control-sm"
-                                        value={c.pivot.quantity}
-                                        onChange={(e) => this.handleChangeQty(c.id, e.target.value)}
-                                        min="1"
+                                        rows="2"
+                                        value={notes}
+                                        onChange={this.handleNotesChange}
+                                        placeholder="Agregar notas..."
                                     />
-                                </td>
-                                <td className="text-center">
-                                    <input
-                                        type="number"
-                                        className="form-control form-control-sm text-center"
-                                        value={c.pivot.purchase_price || 0}
-                                        onChange={(e) => this.handleChangePrice(c.id, e.target.value)}
-                                        min="0"
-                                        step="0.01"
-                                        style={{ fontWeight: 'bold' }}
-                                    />
-                                    <br />
-                                    <small className="text-success">$ {parseFloat(c.pivot.purchase_price || 0).toFixed(2)}</small>
-                                    <br />
-                                    <small className="text-muted">
-                                        {((c.pivot.purchase_price || 0) * window.dolarBcv)
-                                            .toFixed(2)
-                                            .replace('.', ',')
-                                            .replace(/\B(?=(\d{3})+(?!\d))/g, '.')} Bs.
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Estado */}
+                        {cart.length > 0 && (
+                            <div className="card mb-3">
+                                <div className="card-body py-3">
+                                    <label className="small font-weight-bold mb-2">
+                                        <i className="fas fa-flag mr-1"></i>
+                                        Estado
+                                    </label>
+                                    <div
+                                        className="btn-group btn-group-toggle w-100"
+                                        data-toggle="buttons"
+                                    >
+                                        <label
+                                            className={`btn btn-sm ${
+                                                status === "pending"
+                                                    ? "btn-warning active"
+                                                    : "btn-outline-warning"
+                                            }`}
+                                        >
+                                            <input
+                                                type="radio"
+                                                value="pending"
+                                                checked={status === "pending"}
+                                                onChange={
+                                                    this.handleStatusChange
+                                                }
+                                            />
+                                            Pendiente
+                                        </label>
+                                        <label
+                                            className={`btn btn-sm ${
+                                                status === "completed"
+                                                    ? "btn-success active"
+                                                    : "btn-outline-success"
+                                            }`}
+                                        >
+                                            <input
+                                                type="radio"
+                                                value="completed"
+                                                checked={status === "completed"}
+                                                onChange={
+                                                    this.handleStatusChange
+                                                }
+                                            />
+                                            Completado
+                                        </label>
+                                        <label
+                                            className={`btn btn-sm ${
+                                                status === "cancelled"
+                                                    ? "btn-danger active"
+                                                    : "btn-outline-danger"
+                                            }`}
+                                        >
+                                            <input
+                                                type="radio"
+                                                value="cancelled"
+                                                checked={status === "cancelled"}
+                                                onChange={
+                                                    this.handleStatusChange
+                                                }
+                                            />
+                                            Cancelado
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* MONTO TOTAL – VERSIÓN FINAL, LIMPIA Y BRUTAL */}
+                        {cart.length > 0 && (
+                            <div className="card bg-light border-0 shadow-sm mb-3">
+                                <div className="card-body text-center py-5">
+                                    <small className="text-muted d-block mb-4 font-medium">
+                                        Monto Total de la Compra
                                     </small>
-                                </td>
-                                <td>
-                                    <button className="btn btn-danger btn-xs" onClick={() => this.handleClickDelete(c.id)}>
-                                        <i className="fas fa-times"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-                {cart.length === 0 && (
-                    <div className="text-center text-muted py-4">
-                        <p>No hay productos en el carrito</p>
-                    </div>
-                )}
-            </div>
-        </div>
 
-        {/* Notas */}
-        {cart.length > 0 && (
-            <div className="card mb-3">
-                <div className="card-body py-3">
-                    <label className="small">Notas (opcional)</label>
-                    <textarea
-                        className="form-control form-control-sm"
-                        rows="2"
-                        value={notes}
-                        onChange={this.handleNotesChange}
-                        placeholder="Agregar notas..."
-                    />
-                </div>
-            </div>
-        )}
+                                    {/* 1. PRECIO PROVEEDOR (PARALELO) – Grande */}
+                                    <div className="text-gray-500 text-sm mt-1">
+                                        Pago al proveedor (Dólares)
+                                    </div>
+                                    <div className="mb-4">
+                                        <div className="text-success text-xl font-bold leading-tight">
+                                            $ {this.getTotal(cart)}
+                                        </div>
+                                    </div>
 
-        {/* Estado */}
-        {cart.length > 0 && (
-            <div className="card mb-3">
-                <div className="card-body py-3">
-                    <label className="small font-weight-bold mb-2">
-                        <i className="fas fa-flag mr-1"></i>Estado
-                    </label>
-                    <div className="btn-group btn-group-toggle w-100" data-toggle="buttons">
-                        <label className={`btn btn-sm ${status === "pending" ? "btn-warning active" : "btn-outline-warning"}`}>
-                            <input type="radio" value="pending" checked={status === "pending"} onChange={this.handleStatusChange} />
-                            Pendiente
-                        </label>
-                        <label className={`btn btn-sm ${status === "completed" ? "btn-success active" : "btn-outline-success"}`}>
-                            <input type="radio" value="completed" checked={status === "completed"} onChange={this.handleStatusChange} />
-                            Completado
-                        </label>
-                        <label className={`btn btn-sm ${status === "cancelled" ? "btn-danger active" : "btn-outline-danger"}`}>
-                            <input type="radio" value="cancelled" checked={status === "cancelled"} onChange={this.handleStatusChange} />
-                            Cancelado
-                        </label>
-                    </div>
-                </div>
-            </div>
-        )}
+                                    {/* Separador sutil */}
+                                    <div className="border-t border-gray-300 my-2">
+                                        Pago al proveedor (Bolívares)
+                                    </div>
 
-        {/* Monto Total (fijo al final) */}
-        {cart.length > 0 && (
-            <div className="card bg-light border-0 shadow-sm mb-3">
-                <div className="card-body text-center py-4">
-                    <small className="text-muted d-block mb-2">Monto Total</small>
-                    <h3 className="text-success mb-1">
-                        $ {this.getTotal(cart)}
-                    </h3>
-                    <div className="h5 text-secondary">
-                        {(this.getTotal(cart) * window.dolarBcv)
-                            .toFixed(2)
-                            .replace('.', ',')
-                            .replace(/\B(?=(\d{3})+(?!\d))/g, '.')} Bs.
-                    </div>
-                </div>
-            </div>
-        )}
+                                    {/* 2. COSTO REAL BCV – El que importa, más grande y en rojo */}
+                                    <div>
+                                        <div className="text-danger text-xl font-bold leading-tight">
+                                            ${" "}
+                                            {parseFloat(
+                                                cart.reduce((acc, c) => {
+                                                    const costoReal =
+                                                        window.calcularCostoRealBcv(
+                                                            c.pivot
+                                                                .purchase_price ||
+                                                                0
+                                                        );
+                                                    return (
+                                                        acc +
+                                                        costoReal *
+                                                            c.pivot.quantity
+                                                    );
+                                                }, 0)
+                                            ).toFixed(2)}
+                                        </div>
+                                        <div className="text-muted font-bold text-sm mt-2">
+                                            {parseFloat(
+                                                cart.reduce((acc, c) => {
+                                                    const costoReal =
+                                                        window.calcularCostoRealBcv(
+                                                            c.pivot
+                                                                .purchase_price ||
+                                                                0
+                                                        );
+                                                    return (
+                                                        acc +
+                                                        costoReal *
+                                                            c.pivot.quantity
+                                                    );
+                                                }, 0) * window.dolarBcv
+                                            )
+                                                .toFixed(2)
+                                                .replace(".", ",")
+                                                .replace(
+                                                    /\B(?=(\d{3})+(?!\d))/g,
+                                                    "."
+                                                )}{" "}
+                                            Bs.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
-        {/* Botones siempre visibles */}
-        {cart.length > 0 && (
-            <div className="purchase-actions">
-                <div className="row">
-                    <div className="col-6">
-                        <button type="button" className="btn btn-danger btn-block" onClick={this.handleEmptyCart}>
-                            Cancelar
-                        </button>
-                    </div>
-                    <div className="col-6">
-                        <button type="button" className="btn btn-primary btn-block" disabled={!supplier_id} onClick={this.handleClickSubmit}>
-                            Guardar
-                        </button>
+                        {/* Botones siempre visibles */}
+                        {cart.length > 0 && (
+                            <div className="purchase-actions">
+                                <div className="row">
+                                    <div className="col-6">
+                                        <button
+                                            type="button"
+                                            className="btn btn-danger btn-block"
+                                            onClick={this.handleEmptyCart}
+                                        >
+                                            Cancelar
+                                        </button>
+                                    </div>
+                                    <div className="col-6">
+                                        <button
+                                            type="button"
+                                            className="btn btn-primary btn-block"
+                                            disabled={!supplier_id}
+                                            onClick={this.handleClickSubmit}
+                                        >
+                                            Guardar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
-            </div>
-        )}
-    </div>
-</div>
             </div>
         );
     }
