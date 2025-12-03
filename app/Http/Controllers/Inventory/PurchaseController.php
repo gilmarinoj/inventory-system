@@ -26,13 +26,8 @@ class PurchaseController extends Controller
     {
         $query = Purchase::with(['supplier', 'user'])
             ->withCount('items')
-            ->select('purchases.*', 'purchases.parallel_rate_used')
-            ->addSelect([
-                'real_total_bcv' => \App\Models\PurchaseItem::selectRaw('COALESCE(SUM(cost_bcv_equivalent * quantity), 0)')
-                    ->whereColumn('purchase_id', 'purchases.id')
-            ]);
+            ->select('purchases.*'); // Solo esto
 
-        // Aplicar filtros (tu trait PurchaseScopes ya lo hace)
         $query->filter($request->only(['status', 'supplier_id', 'date_from', 'date_to', 'search']));
 
         $purchases = $query->orderBy($request->get('sort_by', 'purchase_date'), $request->get('sort_order', 'desc'))
@@ -40,14 +35,6 @@ class PurchaseController extends Controller
             ->withQueryString();
 
         $suppliers = Supplier::orderBy('first_name')->get();
-
-        // Forzar que traiga los campos calculados
-        $purchases->getCollection()->transform(function ($purchase) {
-            $purchase->real_total_bcv = $purchase->items->sum(function ($item) {
-                return $item->cost_bcv_equivalent * $item->quantity;
-            });
-            return $purchase;
-        });
 
         return view('purchases.index', compact('purchases', 'suppliers'));
     }
