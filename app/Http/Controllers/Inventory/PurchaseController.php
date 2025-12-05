@@ -131,6 +131,7 @@ class PurchaseController extends Controller
             $purchase->update([
                 'parallel_rate_used' => $parallelRate,
                 'real_total_bcv' => $realTotalBcv,
+                'bcv_rate_used' => $bcvRate,
             ]);
 
             DB::commit();

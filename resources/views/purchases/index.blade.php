@@ -164,39 +164,19 @@
                                             </span>
                                         </td>
                                         <td class="text-center">
-                                            <!-- Tasa BCV del día de la compra (la guardas en purchase_items, pero es la misma para toda la compra) -->
+                                            <!-- Tasa BCV del día de la compra (fija para siempre) -->
                                             <div class="text-success font-weight-bold">
-                                                @once
-                                                    @php
-                                                        // Solo para compras muy viejas que no tengan bcv_rate_used, usamos la tasa actual como fallback
-                                                        $bcvFallback = $dolar_bcv;
-                                                    @endphp
-                                                @endonce
-
-                                                <template
-                                                    x-if="purchase.items && purchase.items[0] && purchase.items[0].bcv_rate_used">
-                                                    <span
-                                                        x-text="parseFloat(purchase.items[0].bcv_rate_used).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.')"></span>
-                                                </template>
-                                                <template
-                                                    x-if="!purchase.items || !purchase.items[0] || !purchase.items[0].bcv_rate_used">
-                                                    <span
-                                                        x-text="{{ $bcvFallback }}.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.')"></span>
-                                                </template>
+                                                <span
+                                                    x-text="purchase.bcv_rate_used ? parseFloat(purchase.bcv_rate_used).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.') : '—'"></span>
                                                 <small class="d-block text-success">BCV</small>
                                             </div>
 
                                             <!-- Tasa paralela que te cobró el proveedor -->
-                                            <template x-if="purchase.parallel_rate_used">
-                                                <div class="mt-2 text-danger font-weight-bold">
-                                                    <span
-                                                        x-text="parseFloat(purchase.parallel_rate_used).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.')"></span>
-                                                    <small class="d-block text-danger">Proveedor</small>
-                                                </div>
-                                            </template>
-                                            <template x-if="!purchase.parallel_rate_used">
-                                                <div class="mt-2 text-muted">—</div>
-                                            </template>
+                                            <div class="mt-2 text-danger font-weight-bold">
+                                                <span
+                                                    x-text="purchase.parallel_rate_used ? parseFloat(purchase.parallel_rate_used).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.') : '—'"></span>
+                                                <small class="d-block text-danger">Proveedor</small>
+                                            </div>
                                         </td>
                                         <td class="text-center">
                                             <!-- Monto pagado al proveedor (paralelo) -->

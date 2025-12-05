@@ -59,6 +59,7 @@ class Purchase extends Model
         'notes',
         'parallel_rate_used',
         'real_total_bcv',
+        'bcv_rate_used',
     ];
 
     protected function casts(): array

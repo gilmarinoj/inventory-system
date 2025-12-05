@@ -12,17 +12,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('purchases', function (Blueprint $table) {
-            //
+            $table->decimal('bcv_rate_used', 12, 2)->nullable()->after('parallel_rate_used');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::table('purchases', function (Blueprint $table) {
-            //
+            $table->dropColumn('bcv_rate_used');
         });
     }
 };
