@@ -57,12 +57,14 @@ class Product extends Model
         'image',
         'barcode',
         'price',
+        'price_bsd',
         'quantity',
         'status'
     ];
 
     protected $casts = [
         'price' => 'decimal:2',
+        'price_bsd' => 'decimal:2',
         'quantity' => 'integer',
         'status' => 'boolean',
     ];

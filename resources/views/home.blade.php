@@ -9,14 +9,12 @@
                 <div class="small-box bg-success">
                     <div class="inner">
                         <h3>$ {{ number_format($income_today, 2) }}</h3>
-                        <p class="mb-0">{{ __('dashboard.Income_Today') }}</p>
+                        <p>Ingresos de Hoy</p>
                         <small class="text-white opacity-75">
-                            Precio Bs: {{ number_format($income_today * $dolar_bcv, 2, ',', '.') }}
+                            {{ number_format($income_today * $dolar_paralelo, 2, ',', '.') }} Bs.
                         </small>
                     </div>
                     <div class="icon"><i class="fas fa-money-bill-wave"></i></div>
-                    <a href="{{ route('orders.index') }}" class="small-box-footer">{{ __('common.More_info') }} <i
-                            class="fas fa-arrow-circle-right"></i></a>
                 </div>
             </div>
 
@@ -24,47 +22,97 @@
             <div class="col-lg-3 col-6">
                 <div class="small-box bg-danger">
                     <div class="inner">
-                        <h3>$ {{ number_format($expenses_today ?? 0, 2) }}</h3>
-                        <p class="mb-0">Gastos de Hoy</p>
+                        <h3>$ {{ number_format($expenses_today, 2) }}</h3>
+                        <p>Gastos de Hoy</p>
                         <small class="text-white opacity-75">
-                            Precio Bs: {{ number_format(($expenses_today ?? 0) * $dolar_bcv, 2, ',', '.') }}
+                            {{ number_format($expenses_today * $dolar_paralelo, 2, ',', '.') }} Bs.
                         </small>
                     </div>
-                    <div class="icon"><i class="fas fa-minus-circle"></i></div>
-                    <a href="{{ route('purchases.index') }}" class="small-box-footer">{{ __('common.More_info') }} <i
-                            class="fas fa-arrow-circle-right"></i></a>
+                    <div class="icon"><i class="fas fa-shopping-cart"></i></div>
                 </div>
             </div>
 
-            <!-- INGRESOS TOTALES -->
+            <!-- INGRESOS DEL MES -->
             <div class="col-lg-3 col-6">
                 <div class="small-box bg-success">
                     <div class="inner">
-                        <h3>$ {{ number_format($income, 2) }}</h3>
-                        <p class="mb-0">Ingresos del mes</p>
+                        <h3>$ {{ number_format($income_month, 2) }}</h3>
+                        <p>Ingresos del Mes</p>
                         <small class="text-white opacity-75">
-                            Precio Bs: {{ number_format($income * $dolar_bcv , 2, ',', '.') }}
+                            {{ number_format($income_month * $dolar_paralelo, 2, ',', '.') }} Bs.
                         </small>
                     </div>
                     <div class="icon"><i class="fas fa-money-bill-wave"></i></div>
-                    <a href="{{ route('orders.index') }}" class="small-box-footer">{{ __('common.More_info') }} <i
-                            class="fas fa-arrow-circle-right"></i></a>
                 </div>
             </div>
 
-            <!-- TOTAL DE GASTOS -->
+            <!-- GASTOS DEL MES -->
             <div class="col-lg-3 col-6">
                 <div class="small-box bg-danger">
                     <div class="inner">
-                        <h3>$ {{ number_format($expenses_total ?? 0, 2) }}</h3>
-                        <p class="mb-0">Gastos del mes</p>
+                        <h3>$ {{ number_format($expenses_month, 2) }}</h3>
+                        <p>Gastos del Mes</p>
                         <small class="text-white opacity-75">
-                            Precio Bs: {{ number_format(($expenses_total ?? 0) * $dolar_bcv , 2, ',', '.') }}
+                            {{ number_format($expenses_month * $dolar_paralelo, 2, ',', '.') }} Bs.
                         </small>
                     </div>
-                    <div class="icon"><i class="fas fa-minus-circle"></i></div>
-                    <a href="{{ route('purchases.index') }}" class="small-box-footer">{{ __('common.More_info') }} <i
-                            class="fas fa-arrow-circle-right"></i></a>
+                    <div class="icon"><i class="fas fa-shopping-cart"></i></div>
+                </div>
+            </div>
+
+            <!-- GANANCIA DEL MES (Ingresos - Gastos) -->
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-success">
+                    <div class="inner">
+                        <h3>$ {{ number_format($profit_month, 2) }}</h3>
+                        <p>Ganancia del Mes</p>
+                        <small class="text-white opacity-75">
+                            {{ number_format($profit_month * $dolar_paralelo, 2, ',', '.') }} Bs.
+                        </small>
+                    </div>
+                    <div class="icon"><i class="fas fa-money-bill-wave"></i></div>
+                </div>
+            </div>
+
+            <!-- INGRESOS HISTÓRICOS -->
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-success">
+                    <div class="inner">
+                        <h3>$ {{ number_format($income_total, 2) }}</h3>
+                        <p>Ingresos Totales</p>
+                        <small class="text-white opacity-75">
+                            {{ number_format($income_total * $dolar_paralelo, 2, ',', '.') }} Bs.
+                        </small>
+                    </div>
+                    <div class="icon"><i class="fas fa-chart-line"></i></div>
+                </div>
+            </div>
+
+            <!-- GASTOS HISTÓRICOS -->
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-danger">
+                    <div class="inner">
+                        <h3>$ {{ number_format($expenses_total, 2) }}</h3>
+                        <p>Gastos Totales</p>
+                        <small class="text-white opacity-75">
+                            {{ number_format($expenses_total * $dolar_paralelo, 2, ',', '.') }} Bs.
+                        </small>
+                    </div>
+                    <div class="icon"><i class="fas fa-file-invoice-dollar"></i></div>
+                </div>
+            </div>
+
+            <!-- GANANCIA HISTÓRICA -->
+            <div class="col-lg-3 col-6">
+                <div class="small-box {{ $profit_total >= 0 ? 'bg-success' : 'bg-danger' }}">
+                    <div class="inner">
+                        <h3>$ {{ number_format($profit_total, 2) }}</h3>
+                        <p>Ganancia Histórica</p>
+                        <small class="text-white opacity-75">
+                            {{ number_format($profit_total * $dolar_paralelo, 2, ',', '.') }} Bs.
+                        </small>
+                    </div>
+                    <div class="icon"><i class="fas fa-wallet"></i></div>
                 </div>
             </div>
 
@@ -73,7 +121,7 @@
                 <div class="small-box bg-info">
                     <div class="inner">
                         <h3>{{ $orders_count }}</h3>
-                        <p>{{ __('dashboard.Orders_Count') }}</p>
+                        <p>Total de Ventas</p>
                     </div>
                     <div class="icon"><i class="fas fa-receipt"></i></div>
                     <a href="{{ route('orders.index') }}" class="small-box-footer">{{ __('common.More_info') }} <i
@@ -85,7 +133,7 @@
                 <div class="small-box bg-warning">
                     <div class="inner">
                         <h3>{{ $customers_count }}</h3>
-                        <p>{{ __('dashboard.Customers_Count') }}</p>
+                        <p>Total de Clientes</p>
                     </div>
                     <div class="icon"><i class="fas fa-users nav-icon"></i></div>
                     <a href="{{ route('customers.index') }}" class="small-box-footer">{{ __('common.More_info') }} <i
@@ -95,7 +143,7 @@
 
             <!-- Conversión automática -->
             @php
-                $usdToBs = fn($usd) => number_format($usd * $dolar_bcv , 2, ',', '.');
+                $usdToBs = fn($usd) => number_format($usd * $dolar_paralelo, 2, ',', '.');
             @endphp
 
             <div class="row mt-4">

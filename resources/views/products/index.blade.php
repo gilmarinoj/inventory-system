@@ -18,7 +18,9 @@
                         <th>{{ __('product.Name') }}</th>
                         <th>{{ __('product.Image') }}</th>
                         <th>{{ __('product.Barcode') }}</th>
-                        <th>{{ __('product.Price') }}</th>
+                        <th class="text-center">Precio USD</th>
+                        <th class="text-center">Precio USD (pago en Bolivares)</th>
+                        <th class="text-center">Precio en Bs.</th>
                         <th>{{ __('product.Quantity') }}</th>
                         <th>{{ __('product.Status') }}</th>
                         <th>{{ __('product.Created_At') }}</th>
@@ -33,13 +35,31 @@
                             <td>{{ $product->name }}</td>
                             <td><img class="product-img" src="{{ Storage::url($product->image) }}" alt=""></td>
                             <td>{{ $product->barcode }}</td>
+                            <!-- Precio normal: pago en dólares -->
                             <td class="text-center">
                                 <strong class="text-success">
                                     $ {{ number_format($product->price, 2, ',', '.') }}
                                 </strong>
-                                <br>
-                                <small class="text-muted">
-                                    {{ number_format($product->price * ($dolar_bcv), 2, ',', '.') }} Bs.
+                            </td>
+
+                            <!-- Precio alternativo: pago en bolívares -->
+                            <td class="text-center">
+                                @if ($product->price_bsd)
+                                    <strong class="text-primary">
+                                        $ {{ number_format($product->price_bsd, 2, ',', '.') }}
+                                    </strong>
+                                @else
+                                    <span class="text-muted">—</span>
+                                @endif
+                            </td>
+
+                            <!-- Precio en bolívares (automático con BCV actual) -->
+                            <td class="text-center">
+                                <small class="text-muted font-weight-bold">
+                                    @php
+                                        $priceToUse = $product->price_bsd ?? $product->price;
+                                    @endphp
+                                    {{ number_format($priceToUse * $dolar_bcv, 2, ',', '.') }} Bs.
                                 </small>
                             </td>
                             <td>{{ $product->quantity }}</td>

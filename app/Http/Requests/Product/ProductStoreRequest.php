@@ -19,6 +19,7 @@ class ProductStoreRequest extends FormRequest
             'image' => ['nullable', 'image', 'max:2048'], // 2MB max
             'barcode' => ['required', 'string', 'max:50', 'unique:products,barcode'],
             'price' => ['required', 'numeric', 'min:0', 'decimal:0,2'],
+            'price_bsd'   => ['nullable', 'numeric', 'min:0', 'decimal:0,2'],
             'quantity' => ['required', 'integer', 'min:0'],
             'status' => ['required', 'boolean'],
         ];

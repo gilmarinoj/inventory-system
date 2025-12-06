@@ -25,6 +25,7 @@ class ProductUpdateRequest extends FormRequest
                 Rule::unique('products', 'barcode')->ignore($this->product)
             ],
             'price' => ['required', 'numeric', 'min:0', 'decimal:0,2'],
+            'price_bsd'   => ['nullable', 'numeric', 'min:0', 'decimal:0,2'],
             'quantity' => ['required', 'integer', 'min:0'],
             'status' => ['required', 'boolean'],
         ];
@@ -38,6 +39,8 @@ class ProductUpdateRequest extends FormRequest
             'barcode.unique' => __('product.validation.barcode_unique'),
             'price.required' => __('product.validation.price_required'),
             'price.decimal' => __('product.validation.price_decimal'),
+            'price_bsd.required' => __('product.validation.price_required'),
+            'price_bsd.decimal' => __('product.validation.price_decimal'),
             'quantity.required' => __('product.validation.quantity_required'),
             'quantity.min' => __('product.validation.quantity_min'),
             'image.max' => __('product.validation.image_max'),

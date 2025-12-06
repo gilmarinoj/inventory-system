@@ -160,7 +160,9 @@
                                         </td>
                                         <td>
                                             <span class="badge badge-info">
-                                                <span x-text="purchase.items_count"></span> items
+                                                <span x-text="purchase.items_count"></span>
+                                                <span
+                                                    x-text="Number(purchase.items_count) === 1 ? 'producto' : 'productos'"></span>
                                             </span>
                                         </td>
                                         <td class="text-center">
@@ -172,7 +174,7 @@
                                             </div>
 
                                             <!-- Tasa paralela que te cobró el proveedor -->
-                                            <div class="mt-2 text-danger font-weight-bold">
+                                            <div class="mt-4 text-danger font-weight-bold">
                                                 <span
                                                     x-text="purchase.parallel_rate_used ? parseFloat(purchase.parallel_rate_used).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.') : '—'"></span>
                                                 <small class="d-block text-danger">Proveedor</small>
@@ -206,7 +208,7 @@
                                                             x-text="parseFloat(purchase.real_total_bcv).toFixed(2)"></span>
                                                     </strong>
                                                     <br>
-                                                        Costo Real (BCV)
+                                                    Costo Real (BCV)
                                                     </small>
                                                     <br>
                                                     <span class="text-muted text-sm">

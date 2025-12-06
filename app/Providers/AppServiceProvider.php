@@ -8,6 +8,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
 use App\Services\BcvRateService;
+use App\Models\DolarParalelo;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -38,6 +39,10 @@ class AppServiceProvider extends ServiceProvider
         // UNA SOLA fuente de verdad para $dolar_bcv
         View::composer('*', function ($view) {
             $view->with('dolar_bcv', app(\App\Services\BcvRateService::class)->getRate());
+        });
+
+        View::composer('*', function ($view) {
+            $view->with('dolar_paralelo', app(\App\Models\DolarParalelo::class)->tasaActualRaw());
         });
     }
 }

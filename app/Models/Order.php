@@ -191,6 +191,11 @@ class Order extends Model
         return round($this->total() * $this->bcv_rate_used, 2);
     }
 
+    public function scopeSumReceivedAmount($query)
+    {
+        return $query->withSum('payments', 'amount')->get()->sum('payments_sum_amount');
+    }
+
     // Monto recibido histórico en Bs.
     public function receivedHistoricalBsd(): float
     {
