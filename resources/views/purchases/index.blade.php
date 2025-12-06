@@ -121,14 +121,14 @@
         </div>
 
         <!-- Loading Overlay -->
-        <div x-show="loading" x-transition class="text-center py-5 flex-shrink-0">
+        <div x-show="loading" x-transition class="text-center py-5 shrink-0">
             <i class="fas fa-spinner fa-spin fa-3x text-primary"></i>
         </div>
 
         <!-- Purchases Table Card -->
         <div class="card" x-show="!loading" x-transition style="height: calc(100vh - 280px);">
             <div class="card-body p-0 h-100 d-flex flex-column">
-                <div class="table-responsive flex-grow-1">
+                <div class="table-responsive grow">
                     <table class="table table-hover mb-0">
                         <thead class="thead-light sticky-top bg-white">
                             <tr>
@@ -187,7 +187,12 @@
                                                 <br>
                                                 <small class="text-muted">
                                                     <span
-                                                        x-text="(parseFloat(purchase.total_amount) * {{ $dolar_bcv }}).toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g, '.')"></span>
+                                                        x-text="purchase.bcv_rate_used 
+        ? (parseFloat(purchase.total_amount) * parseFloat(purchase.bcv_rate_used))
+            .toFixed(2)
+            .replace('.',',')
+            .replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+        : '—'"></span>
                                                     Bs.
                                                 </small>
                                             </div>
@@ -201,13 +206,18 @@
                                                             x-text="parseFloat(purchase.real_total_bcv).toFixed(2)"></span>
                                                     </strong>
                                                     <br>
-                                                    <small class="text-danger font-weight-bold">
                                                         Costo Real (BCV)
                                                     </small>
                                                     <br>
                                                     <span class="text-muted text-sm">
                                                         <span
-                                                            x-text="(parseFloat(purchase.real_total_bcv) * {{ $dolar_bcv }}).toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g, '.')"></span>
+                                                            x-text="purchase.bcv_rate_used 
+                                                            ? (parseFloat(purchase.real_total_bcv) * parseFloat(purchase.bcv_rate_used))
+                                                            .toFixed(2)
+                                                            .replace('.',',')
+                                                            .replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                                            : '—'">
+                                                        </span>
                                                         Bs.
                                                     </span>
                                                 </div>
