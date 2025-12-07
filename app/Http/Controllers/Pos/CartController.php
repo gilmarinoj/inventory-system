@@ -20,7 +20,14 @@ class CartController extends Controller
     public function index(Request $request): View|JsonResponse
     {
         if ($request->wantsJson()) {
-            return response()->json($request->user()->cart()->get());
+            $cart = $request->user()
+                ->cart()
+                ->withPivot('quantity')
+                ->get()
+                ->loadMissing('price_bsd') // fuerza que traiga el campo
+                ->makeVisible(['price_bsd']);
+
+            return response()->json($cart);
         }
 
         return view('cart.index');

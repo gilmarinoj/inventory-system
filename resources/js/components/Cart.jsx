@@ -123,7 +123,11 @@ class Cart extends Component {
                     this.setState({ barcode: "" });
                 })
                 .catch((err) => {
-                    Swal.fire("Error!", err.response.data.message, "error");
+                    Swal.fire(
+                        "Error!",
+                        "Codigo de barras de producto incorrecto!",
+                        "error"
+                    );
                 });
         }
     }
@@ -221,110 +225,122 @@ class Cart extends Component {
         this.setState({ customer_id: event.target.value });
     }
     handleClickSubmit() {
-        const totalUsd = parseFloat(this.getTotal(this.state.cart));
-        const totalBs = totalUsd * window.dolarBcv;
+        const cart = this.state.cart;
+
+        // Total usando precio normal (dólares)
+        const totalNormal = sum(
+            cart.map((c) => c.pivot.quantity * parseFloat(c.price))
+        );
+
+        // Total usando precio alternativo cuando pagan en Bs
+        const totalConPrecioBs = sum(
+            cart.map((c) => {
+                const precioUsado = c.price_bsd
+                    ? parseFloat(c.price_bsd)
+                    : parseFloat(c.price);
+                return c.pivot.quantity * precioUsado;
+            })
+        );
 
         Swal.fire({
             title: "Confirmar Venta",
             html: `
-        <div class="text-left mb-3">
-            <p><strong>Total Base:</strong> $ ${totalUsd.toFixed(2)}</p>
-            <p><strong>Equivalente BCV:</strong> ${totalBs
-                .toFixed(2)
-                .replace(".", ",")} Bs.</p>
-        </div>
-        <hr>
-        <div class="text-center mb-3">
-            <label class="font-weight-bold h5">Monto a Cobrar</label>
-            <input type="number" id="amount-usd" class="form-control form-control-lg text-center font-weight-bold" 
-                   value="${totalUsd.toFixed(
-                       2
-                   )}" step="0.01" min="${totalUsd.toFixed(2)}"
-                   style="font-size: 2em;">
-            <div class="mt-3">
-                <small class="text-muted">Equivalente en Bolívares:</small>
-                <h3 id="equiv-bs" class="text-primary mb-0">
-                    ${totalBs.toFixed(2).replace(".", ",")} Bs.
-                </h3>
+            <div class="text-left mb-4">
+                <p><strong>Precio en dólares:</strong> $ ${totalNormal.toFixed(
+                    2
+                )}</p>
+                ${
+                    totalConPrecioBs !== totalNormal
+                        ? `
+                <p><strong>Pago en bolívares (precio alternativo):</strong> 
+                   $ ${totalConPrecioBs.toFixed(2)} 
+                   <br>
+                <p><strong>Monto en Bolivares:</strong>
+                   <span>${(
+                       totalConPrecioBs * window.dolarBcv
+                   )
+                       .toFixed(2)
+                       .replace(".", ",")} Bs.</span>
+                </p>`
+                        : ""
+                }
             </div>
-        </div>
-        <div class="form-check mt-3">
-            <input class="form-check-input" type="checkbox" id="bs-payment">
-            <label class="form-check-label text-danger font-weight-bold" for="bs-payment">
-                Pago en Bolívares (NO generar vuelto si cobra de más)
-            </label>
-        </div>
+            <hr>
+            <div class="text-center">
+                <label class="font-weight-bold h5">Monto a cobrar</label>
+                <input type="number" id="amount-usd" class="form-control form-control-lg text-center" 
+                       value="${totalConPrecioBs.toFixed(
+                           2
+                       )}" step="0.01" min="${totalConPrecioBs.toFixed(2)}" 
+                       style="font-size: 2em;">
+                <div class="mt-3">
+                    <small class="text-muted">En bolívares:</small>
+                    <h3 id="equiv-bs" class="text-primary">
+                        ${(totalConPrecioBs * window.dolarBcv)
+                            .toFixed(2)
+                            .replace(".", ",")
+                            .replace(/\B(?=(\d{3})+(?!\d))/g, ".")} Bs.
+                    </h3>
+                </div>
+            </div>
+            <div class="form-check mt-4">
+                <input class="form-check-input" type="checkbox" id="bs-payment" checked>
+                <label class="form-check-label text-danger font-weight-bold">
+                    Pago en bolívares ${
+                        totalConPrecioBs !== totalNormal
+                            ? "(precio alternativo aplicado)"
+                            : ""
+                    }
+                </label>
+            </div>
         `,
             showCancelButton: true,
             confirmButtonText: "Confirmar Venta",
-            cancelButtonText: "Cancelar",
-            focusConfirm: false,
-            didOpen: () => {
-                const inputUsd = document.getElementById("amount-usd");
-                const equivBs = document.getElementById("equiv-bs");
-
-                inputUsd.addEventListener("input", () => {
-                    const usd = parseFloat(inputUsd.value) || 0;
-                    const bs = usd * window.dolarBcv;
-                    equivBs.textContent =
-                        bs
-                            .toFixed(2)
-                            .replace(".", ",")
-                            .replace(/\B(?=(\d{3})+(?!\d))/g, ".") + " Bs.";
-                });
-            },
             preConfirm: () => {
-                const amountUsd = parseFloat(
+                const amount = parseFloat(
                     document.getElementById("amount-usd").value
                 );
-                const isBsPayment =
-                    document.getElementById("bs-payment").checked;
+                const isBs = document.getElementById("bs-payment").checked;
+                const minimo = isBs ? totalConPrecioBs : totalNormal;
 
-                if (isNaN(amountUsd) || amountUsd < totalUsd) {
+                if (amount < minimo) {
                     Swal.showValidationMessage(
-                        "El monto debe ser mayor o igual al total base"
+                        `El monto no puede ser menor a $ ${minimo.toFixed(2)}`
                     );
                     return false;
                 }
-                return { amountUsd, isBsPayment };
+                return { amount, isBs };
+            },
+            didOpen: () => {
+                document
+                    .getElementById("amount-usd")
+                    .addEventListener("input", function () {
+                        const usd = parseFloat(this.value) || 0;
+                        const bs = usd * window.dolarBcv;
+                        document.getElementById("equiv-bs").textContent =
+                            bs
+                                .toFixed(2)
+                                .replace(".", ",")
+                                .replace(/\B(?=(\d{3})+(?!\d))/g, ".") + " Bs.";
+                    });
             },
         }).then((result) => {
             if (result.isConfirmed) {
-                const { amountUsd, isBsPayment } = result.value;
-                const amountBs = amountUsd * window.dolarBcv;
-
+                const { amount, isBs } = result.value;
                 axios
                     .post("/admin/orders", {
                         customer_id: this.state.customer_id || null,
-                        amount: amountUsd,
-                        is_bs_payment: isBsPayment, // NUEVO
-                        notes: isBsPayment
-                            ? `Pago en bolívares: ${amountBs
+                        amount: amount,
+                        is_bs_payment: isBs,
+                        notes: isBs
+                            ? `Pago en Bs: ${(amount * window.dolarBcv)
                                   .toFixed(2)
-                                  .replace(".", ",")} Bs.${
-                                  amountUsd > totalUsd ? " (recargo)" : ""
-                              }`
+                                  .replace(".", ",")} Bs.`
                             : null,
                     })
-                    .then((res) => {
+                    .then(() => {
                         this.loadCart();
-                        Swal.fire(
-                            "¡Venta Exitosa!",
-                            isBsPayment && amountUsd > totalUsd
-                                ? `Cobrado $ ${amountUsd.toFixed(
-                                      2
-                                  )} en bolívares (recargo absorbido)`
-                                : `Cobrado $ ${amountUsd.toFixed(2)}`,
-                            "success"
-                        );
-                    })
-                    .catch((err) => {
-                        Swal.fire(
-                            "Error",
-                            err.response?.data?.message ||
-                                "No se pudo procesar",
-                            "error"
-                        );
+                        Swal.fire("Venta exitosa!", "", "success");
                     });
             }
         });
@@ -347,8 +363,9 @@ class Cart extends Component {
                                     type="text"
                                     className="form-control"
                                     placeholder={
-                                        translations["scan_barcode"] ||
-                                        "Scan Barcode"
+                                        translations[
+                                            "buscar_codigo_de_barras"
+                                        ] || "Codigo de Barras"
                                     }
                                     value={barcode}
                                     onChange={this.handleOnChangeBarcode}
@@ -521,14 +538,39 @@ class Cart extends Component {
                                 >
                                     {p.name}({p.quantity})
                                 </h5>
-                                <div className="text-center mt-1">
-                                    <small className="text-success font-weight-bold">
+                                <div className="text-center mt-2">
+                                    {/* Precio normal – Pago en dólares */}
+                                    <div className="text-primary/80 text-xs">
+                                        Cobro en Dolares:
+                                    </div>
+                                    <div className="text-success font-weight-bold text-sm">
                                         $ {parseFloat(p.price).toFixed(2)}
-                                    </small>
-                                    <br />
-                                    <small className="text-muted">
+                                    </div>
+
+                                    {/* Precio alternativo – Pago en bolívares */}
+                                    {p.price_bsd &&
+                                        parseFloat(p.price_bsd) !==
+                                            parseFloat(p.price) && (
+                                            <div className="text-center">
+                                                <div className="text-primary/80 text-xs">
+                                                    Cobro en Bs:
+                                                </div>
+                                                <div className="text-primary font-weight-bold text-sm leading-none">
+                                                    ${" "}
+                                                    {parseFloat(
+                                                        p.price_bsd
+                                                    ).toFixed(2)}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                    {/* Precio en bolívares con tasa BCV actual */}
+                                    <div className="text-muted text-xs mt-2">
                                         {window.dolarBcv
-                                            ? (p.price * window.dolarBcv)
+                                            ? (
+                                                  (p.price_bsd || p.price) *
+                                                  window.dolarBcv
+                                              )
                                                   .toFixed(2)
                                                   .replace(".", ",")
                                                   .replace(
@@ -537,7 +579,7 @@ class Cart extends Component {
                                                   )
                                             : "..."}{" "}
                                         Bs.
-                                    </small>
+                                    </div>
                                 </div>
                             </div>
                         ))}
