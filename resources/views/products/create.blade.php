@@ -35,16 +35,35 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="image">{{ __('product.Image') }}</label>
-                    <div class="custom-file">
-                        <input type="file" class="custom-file-input" name="image" id="image">
-                        <label class="custom-file-label" for="image">{{ __('product.Choose_file') }}</label>
+                    <label>{{ __('product.Image') }}</label>
+
+                    <!-- PREVIEW -->
+                    <div class="text-center mb-3">
+                        <img id="preview"
+                            src="{{ isset($product) && $product->image ? $product->image_url : asset('images/img-placeholder.jpg') }}"
+                            class="img-thumbnail" style="max-height: 220px; width: auto;">
                     </div>
+
+                    <!-- INPUT FILE (con la clase que necesita el plugin) -->
+                    <div class="custom-file">
+                        <input type="file" name="image" id="image" class="custom-file-input" accept="image/*">
+                        
+                        <label class="custom-file-label" for="image">
+                            {{ isset($product) && $product->image ? basename($product->image) : __('product.Choose_file') }}
+                        </label>
+                    </div>
+
                     @error('image')
-                        <span class="invalid-feedback" role="alert">
-                            <strong>{{ $message }}</strong>
-                        </span>
+                        <small class="text-danger d-block">{{ $message }}</small>
                     @enderror
+
+                    @if (isset($product) && $product->image)
+                        <div class="mt-2">
+                            <label class="text-danger">
+                                <input type="checkbox" name="delete_image" value="1"> Eliminar imagen actual
+                            </label>
+                        </div>
+                    @endif
                 </div>
 
                 <div class="form-group">
@@ -117,8 +136,34 @@
 @section('js')
     <script src="{{ asset('plugins/bs-custom-file-input/bs-custom-file-input.min.js') }}"></script>
     <script>
-        $(document).ready(function() {
+        document.addEventListener('DOMContentLoaded', function() {
             bsCustomFileInput.init();
+
+            const input = document.getElementById('image');
+            const preview = document.getElementById('preview');
+
+            input.addEventListener('change', function() {
+                const file = this.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        preview.src = e.target.result;
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // Si se marca "eliminar imagen"
+            document.querySelectorAll('input[name="delete_image"]').forEach(cb => {
+                cb.addEventListener('change', function() {
+                    if (this.checked) {
+                        preview.src = '{{ asset('images/img-placeholder.jpg') }}';
+                        // También resetea el input file
+                        input.value = '';
+                        bsCustomFileInput.init(); // reinicia el label
+                    }
+                });
+            });
         });
     </script>
 @endsection

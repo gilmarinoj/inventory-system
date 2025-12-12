@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\Purchase;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class HomeController extends Controller
 {
@@ -47,6 +48,23 @@ class HomeController extends Controller
         $profit_total = $income_total - $expenses_total;
         $profit_month  = $income_month - $expenses_month;
 
+        // Grafica
+
+        $months = [];
+        $ordersCount = [];
+
+        for ($i = 11; $i >= 0; $i--) {
+            $date = Carbon::today()->startOfMonth()->subMonths($i);
+
+            $months[] = $date->translatedFormat('M Y'); // "Ene 2025", "Feb 2025"...
+
+            $count = Order::whereYear('created_at', $date->year)
+                ->whereMonth('created_at', $date->month)
+                ->count();
+
+            $ordersCount[] = $count;
+        }
+
         return view('home', [
             // Ingresos
             'income_total'    => $income_total,
@@ -69,6 +87,8 @@ class HomeController extends Controller
             'best_selling_products'  => Product::bestSelling(5)->get(),
             'current_month_products' => Product::currentMonthBestSelling(5)->get(),
             'current_year_products'  => Product::currentYearBestSelling(5)->get(),
+            'months' => $months,
+            'ordersCount' => $ordersCount,
         ]);
     }
 }

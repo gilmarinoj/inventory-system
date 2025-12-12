@@ -1,10 +1,12 @@
 @extends('layouts.admin')
-@section('content-header', __('dashboard.title'))
 @section('content')
     <div class="container-fluid">
         <div class="row">
 
             <!-- INGRESOS DE HOY -->
+            <div class="col-12">
+                <h2>Resumen Hoy</h2>
+            </div>
             <div class="col-lg-3 col-6">
                 <div class="small-box bg-success">
                     <div class="inner">
@@ -30,6 +32,10 @@
                     </div>
                     <div class="icon"><i class="fas fa-shopping-cart"></i></div>
                 </div>
+            </div>
+
+            <div class="col-12">
+                <h2>Resumen Mensual</h2>
             </div>
 
             <!-- INGRESOS DEL MES -->
@@ -74,6 +80,9 @@
                 </div>
             </div>
 
+            <div class="col-12">
+                <h2>Resumen Histórico</h2>
+            </div>
             <!-- INGRESOS HISTÓRICOS -->
             <div class="col-lg-3 col-6">
                 <div class="small-box bg-success">
@@ -114,6 +123,9 @@
                     </div>
                     <div class="icon"><i class="fas fa-wallet"></i></div>
                 </div>
+            </div>
+
+            <div class="col-12 mt-2">
             </div>
 
             <!-- Tus cajas originales -->
@@ -169,8 +181,7 @@
                                             <tr>
                                                 <td>{{ $p->id }}</td>
                                                 <td>{{ $p->name }}</td>
-                                                <td><img class="product-img" src="{{ Storage::url($p->image) }}"
-                                                        alt=""></td>
+                                                <td><img class="product-img" src="{{ $p->image_url }}" alt="{{ $p->name }}" height="40"></td>
                                                 <td>{{ $p->barcode }}</td>
                                                 <td class="text-center">
                                                     <div class="text-success font-weight-bold">$
@@ -192,5 +203,83 @@
                     </div>
                 @endforeach
             </div>
+
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title">
+                        <i class="fas fa-chart-bar mr-2"></i>
+                        Ventas por Mes - Últimos 12 Meses
+                    </h3>
+                    <div class="card-tools">
+                        <br>
+                        <span class="badge badge-light">
+                            Total: {{ array_sum($ordersCount) }} órdenes
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <canvas id="salesLast12Months" height="200"></canvas>
+                </div>
+            </div>
         </div>
+    @endsection
+
+    @section('js')
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const ctx = document.getElementById('salesLast12Months').getContext('2d');
+
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: @json($months),
+                        datasets: [{
+                            label: 'Cantidad de Ventas',
+                            data: @json($ordersCount),
+                            backgroundColor: 'rgba(0, 123, 255, 0.7)',
+                            borderColor: '#007bff',
+                            borderWidth: 2,
+                            borderRadius: 8,
+                            borderSkipped: false,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return 'Ventas: ' + context.parsed.y + ' órdenes';
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1,
+                                    font: {
+                                        size: 12
+                                    }
+                                },
+                                grid: {
+                                    display: false
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+        </script>
     @endsection

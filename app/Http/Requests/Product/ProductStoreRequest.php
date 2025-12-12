@@ -28,10 +28,10 @@ class ProductStoreRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required' => __('product.validation.name_required'),
-            'barcode.required' => __('product.validation.barcode_required'),
-            'barcode.unique' => __('product.validation.barcode_unique'),
-            'price.required' => __('product.validation.price_required'),
+            'name.required' => 'El nombre del producto es obligatorio!',
+            'barcode.required' => 'El código de barras del producto es obligatorio!',
+            'barcode.unique' => 'El código de barras del producto debe ser único!',
+            'price.required' => 'El precio del producto es obligatorio!',
             'price.decimal' => __('product.validation.price_decimal'),
             'quantity.required' => __('product.validation.quantity_required'),
             'quantity.min' => __('product.validation.quantity_min'),

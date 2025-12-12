@@ -23,9 +23,7 @@ class CartController extends Controller
             $cart = $request->user()
                 ->cart()
                 ->withPivot('quantity')
-                ->get()
-                ->loadMissing('price_bsd') // fuerza que traiga el campo
-                ->makeVisible(['price_bsd']);
+                ->get();
 
             return response()->json($cart);
         }

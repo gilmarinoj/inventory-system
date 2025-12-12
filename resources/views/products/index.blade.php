@@ -33,7 +33,7 @@
                         <tr>
                             <td>{{ $product->id }}</td>
                             <td>{{ $product->name }}</td>
-                            <td><img class="product-img" src="{{ Storage::url($product->image) }}" alt=""></td>
+                            <td><img class="product-img" src="{{ $product->image_url }}" alt="{{ $product->name }}"></td>
                             <td>{{ $product->barcode }}</td>
                             <!-- Precio normal: pago en dólares -->
                             <td class="text-center">

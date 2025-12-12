@@ -76,7 +76,7 @@ class Product extends Model
     public function getImageUrlAttribute(): string
     {
         if ($this->image) {
-            return Storage::disk('public')->url($this->image);
+            return url('storage/' . $this->image);
         }
 
         return asset('images/img-placeholder.jpg');

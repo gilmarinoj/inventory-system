@@ -164,17 +164,16 @@
                     })
                     .then(data => {
                         document.getElementById('paralelo-rate').textContent = data.tasa;
-                        $('#paraleloModal').modal('hide');
+                        //$('#paraleloModal').modal('hide');
                         if (typeof toastr !== 'undefined') toastr.success('Dólar paralelo actualizado');
+                        window.location.reload()
                     })
                     .catch(err => {
                         console.error('Error completo:', err);
                         if (typeof toastr !== 'undefined') toastr.error('Error al guardar');
-                    })
-                    .finally(() => {
                         btn.disabled = false;
                         btn.innerHTML = original;
-                    });
+                    })
             };
         });
     </script>

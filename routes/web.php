@@ -6,6 +6,8 @@ use App\Http\Controllers\Inventory\PurchaseCartController;
 use App\Http\Controllers\Inventory\PurchaseController;
 use App\Http\Controllers\Management\CustomerController;
 use App\Http\Controllers\Management\SupplierController;
+use App\Http\Controllers\Admin\SalesReportController;
+use App\Http\Controllers\Admin\PurchaseReportController;
 use App\Http\Controllers\Pos\CartController;
 use App\Http\Controllers\Pos\OrderController;
 use App\Http\Controllers\Settings\SettingController;
@@ -80,4 +82,10 @@ Route::prefix('admin')->middleware(['auth', 'locale'])->group(function (): void 
 
     Route::post('/paralelo/refresh', [ParaleloController::class, 'refresh'])
         ->name('paralelo.refresh');
+
+    Route::get('/admin/orders/report/pdf', [SalesReportController::class, 'download'])
+        ->name('orders.report.pdf');
+
+    Route::get('/admin/purchases/report/pdf', [PurchaseReportController::class, 'download'])
+        ->name('purchases.report.pdf');
 });

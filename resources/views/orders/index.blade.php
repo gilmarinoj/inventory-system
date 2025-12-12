@@ -10,19 +10,43 @@
     <div class="card">
         <div class="card-body">
             <div class="row">
-                <div class="col-md-7"></div>
+                <div class="col-md-7">
+                    <div class="text-left mb-4">
+                        <form action="{{ route('orders.report.pdf') }}" method="GET" target="_blank" class="d-inline">
+                            <div class="row g-2 align-items-end">
+                                <div class="col-auto">
+                                    <label class="form-label">Desde</label>
+                                    <input type="date" name="start_date" class="form-control" required
+                                        value="{{ old('start_date', now()->subDays(30)->format('Y-m-d')) }}">
+                                </div>
+                                <div class="col-auto">
+                                    <label class="form-label">Hasta</label>
+                                    <input type="date" name="end_date" class="form-control" required
+                                        value="{{ old('end_date', now()->format('Y-m-d')) }}">
+                                </div>
+                                <div class="col-auto">
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fas fa-file-pdf"></i> Generar PDF de Ventas
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
                 <div class="col-md-5">
                     <form action="{{ route('orders.index') }}">
                         <div class="row">
-                            <div class="col-md-5">
+                            <div class="col-md-4">
+                                <label class="form-label">Desde</label>
                                 <input type="date" name="start_date" class="form-control"
                                     value="{{ request('start_date') }}" />
                             </div>
-                            <div class="col-md-5">
+                            <div class="col-md-4">
+                                <label class="form-label">Hasta</label>
                                 <input type="date" name="end_date" class="form-control"
                                     value="{{ request('end_date') }}" />
                             </div>
-                            <div class="col-md-2">
+                            <div class="col-md-2 mt-4">
                                 <button class="btn btn-outline-primary" type="submit">{{ __('order.submit') }}</button>
                             </div>
                         </div>
@@ -279,10 +303,10 @@
                     '<thead>' +
                     '<tr>' +
                     '<th>#</th>' +
-                    '<th>Item</th>' +
-                    '<th>Description</th>' +
-                    '<th>Unit Cost</th>' +
-                    '<th>Qty</th>' +
+                    '<th>Producto</th>' +
+                    '<th>Descripcion</th>' +
+                    '<th>Precio Unitario</th>' +
+                    '<th>Cantidad</th>' +
                     '<th>Total</th>' +
                     '</tr>' +
                     '</thead>' +
@@ -293,11 +317,11 @@
                     '<th>' + currencySymbol + ' ' + parseFloat(totalAmount).toFixed(2) + '</th>' +
                     '</tr>' +
                     '<tr>' +
-                    '<th colspan="5" class="text-right">Paid</th>' +
+                    '<th colspan="5" class="text-right">Pago</th>' +
                     '<th>' + currencySymbol + ' ' + parseFloat(receivedAmount).toFixed(2) + '</th>' +
                     '</tr>' +
                     '<tr>' +
-                    '<th colspan="5" class="text-right">Balance</th>' +
+                    '<th colspan="5" class="text-right">Recargo</th>' +
                     '<th>' + currencySymbol + ' ' + parseFloat(totalAmount - receivedAmount).toFixed(
                         2) + '</th>' +
                     '</tr>' +

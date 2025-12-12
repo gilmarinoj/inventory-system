@@ -51,7 +51,8 @@ class ProductController extends Controller
         $productData = $request->validated();
 
         if ($request->hasFile('image')) {
-            $productData['image'] = $request->file('image')->store('products', 'public');
+            $path = $request->file('image')->store('products', 'public'); // guarda en storage/app/public/products
+            $productData['image'] = 'products/' . basename($path);
         }
 
         Product::create($productData);
@@ -87,11 +88,16 @@ class ProductController extends Controller
     {
         $productData = $request->validated();
 
+        // 1. Eliminar imagen si se marcó
+        if ($request->has('delete_image') && $product->image) {
+            Storage::disk('public')->delete($product->image);
+            $productData['image'] = null;
+        }
+
+        // 2. Subir nueva imagen
         if ($request->hasFile('image')) {
-            if ($product->image) {
-                Storage::disk('public')->delete($product->image);
-            }
-            $productData['image'] = $request->file('image')->store('products', 'public');
+            $path = $request->file('image')->store('products', 'public'); // guarda en storage/app/public/products
+            $productData['image'] = 'products/' . basename($path);
         }
 
         $product->update($productData);
